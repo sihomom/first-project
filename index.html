@@ -11,7 +11,7 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: #f5f5f0; min-height: 100vh; }
-.app { max-width: 390px; margin: 0 auto; padding: 1rem; padding-bottom: 3rem; }
+.app { max-width: 390px; margin: 0 auto; padding: 1rem; padding-bottom: 5rem; }
 .header { text-align: center; padding: 1rem 0 0.5rem; }
 .header h1 { font-size: 18px; font-weight: 500; color: #1a1a1a; }
 .header .date { font-size: 13px; color: #888; margin-top: 4px; }
@@ -24,9 +24,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .stat { background: #fff; border-radius: 10px; padding: 0.75rem 1rem; border: 0.5px solid #e0e0e0; }
 .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
 .stat-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
-.tab-bar { display: flex; gap: 8px; margin-bottom: 1rem; }
-.tab { flex: 1; padding: 9px 8px; text-align: center; font-size: 13px; border-radius: 10px; cursor: pointer; border: 0.5px solid #e0e0e0; background: #fff; color: #888; }
-.tab.active { background: #efefeb; color: #1a1a1a; font-weight: 500; border-color: #d0d0cc; }
+.bottom-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-top: 0.5px solid #e0e0e0; display: flex; z-index: 50; }
+.bottom-tab { flex: 1; padding: 10px 8px 14px; text-align: center; cursor: pointer; font-size: 11px; color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bottom-tab.active { color: #1a1a1a; }
+.bottom-tab .icon { font-size: 22px; line-height: 1; }
 .form-wrap { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
 .form-row { margin-bottom: 12px; }
@@ -50,6 +51,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .cat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; }
 .cat-name { font-size: 14px; color: #1a1a1a; }
 .cat-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.month-nav button { background: none; border: 0.5px solid #e0e0e0; border-radius: 8px; padding: 6px 12px; font-size: 14px; cursor: pointer; color: #1a1a1a; font-family: inherit; }
+.month-label { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+.dash-card { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; }
+.dash-card-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+.dash-card-value { font-size: 24px; font-weight: 500; color: #1a1a1a; }
+.dash-card-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+.dash-small { background: #fff; border-radius: 12px; padding: 1rem; border: 0.5px solid #e0e0e0; }
+.dash-small-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.dash-small-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+.cat-dash-item { display: flex; align-items: center; padding: 10px 12px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; margin-bottom: 6px; gap: 10px; }
+.cat-dash-left { flex: 1; }
+.cat-dash-name { font-size: 14px; color: #1a1a1a; margin-bottom: 4px; }
+.cat-dash-bar-wrap { background: #f0f0ec; border-radius: 4px; height: 5px; overflow: hidden; }
+.cat-dash-bar { height: 100%; background: #1a1a1a; border-radius: 4px; }
+.cat-dash-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
 .sheet { position: fixed; bottom: -100%; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-radius: 20px 20px 0 0; padding: 1.5rem 1rem 2.5rem; z-index: 101; transition: bottom 0.3s ease; }
@@ -70,22 +88,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <h1>용돈 관리</h1>
     <div class="date" id="today-date"></div>
   </div>
-  <div class="balance-card">
-    <div class="balance-label">오늘의 예산</div>
-    <div class="balance-amount" id="balance-display">₩0</div>
-    <div class="balance-sub" id="balance-sub"></div>
-  </div>
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-label">오늘의 지출</div>
-      <div class="stat-value" id="today-spent">₩0</div>
+  <div id="view-today">
+    <div class="balance-card">
+      <div class="balance-label">오늘의 예산</div>
+      <div class="balance-amount" id="balance-display">₩0</div>
+      <div class="balance-sub" id="balance-sub"></div>
     </div>
-  </div>
-  <div class="tab-bar">
-    <div class="tab active" id="tab-add" onclick="switchTab('add')">지출 추가</div>
-    <div class="tab" id="tab-category" onclick="switchTab('category')">카테고리별로 보기</div>
-  </div>
-  <div id="view-add">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">오늘의 지출</div>
+        <div class="stat-value" id="today-spent">₩0</div>
+      </div>
+    </div>
     <div class="form-wrap">
       <div class="form-title" id="form-title">지출 추가</div>
       <div class="form-row">
@@ -123,6 +137,44 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <div class="section-title">이번 달 카테고리별 지출</div>
     <div class="cat-list" id="cat-list"></div>
   </div>
+  <div id="view-dashboard" style="display:none;">
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">◀</button>
+      <div class="month-label" id="dash-month-label"></div>
+      <button onclick="changeMonth(1)">▶</button>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">총 지출</div>
+      <div class="dash-card-value" id="dash-total">₩0</div>
+      <div class="dash-card-sub" id="dash-sub"></div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-small">
+        <div class="dash-small-label">지출 일수</div>
+        <div class="dash-small-value" id="dash-days">0일</div>
+      </div>
+      <div class="dash-small">
+        <div class="dash-small-label">일평균 지출</div>
+        <div class="dash-small-value" id="dash-avg">₩0</div>
+      </div>
+    </div>
+    <div class="section-title">카테고리별 지출</div>
+    <div id="dash-cat-list"></div>
+  </div>
+</div>
+<div class="bottom-tab-bar">
+  <div class="bottom-tab active" id="btab-today" onclick="switchTab('today')">
+    <div class="icon">💸</div>
+    <div>오늘</div>
+  </div>
+  <div class="bottom-tab" id="btab-category" onclick="switchTab('category')">
+    <div class="icon">📂</div>
+    <div>카테고리</div>
+  </div>
+  <div class="bottom-tab" id="btab-dashboard" onclick="switchTab('dashboard')">
+    <div class="icon">📊</div>
+    <div>월별</div>
+  </div>
 </div>
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
@@ -141,21 +193,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 </div>
 <script>
 const MONTHLY=350000,DAILY=Math.round(MONTHLY/30),STORAGE_KEY='yongdon_data';
+const CATS=['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
 let editingId=null,selectedId=null;
+let dashYear=new Date().getFullYear(),dashMonth=new Date().getMonth()+1;
 function getToday(){return new Date().toISOString().split('T')[0];}
 function getMonth(){return new Date().toISOString().substring(0,7);}
 function loadData(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):{carry:0,lastDate:getToday(),expenses:[]};}catch(e){return{carry:0,lastDate:getToday(),expenses:[]};}}
 function saveData(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
 function checkRollover(d){const t=getToday();if(d.lastDate!==t){const s=d.expenses.filter(e=>e.date===d.lastDate).reduce((a,e)=>a+e.amount,0);d.carry=DAILY+d.carry-s;d.lastDate=t;saveData(d);}return d;}
 function fmt(n){return'₩'+Math.round(n).toLocaleString('ko-KR');}
-function render(){let d=loadData();d=checkRollover(d);const t=getToday(),dt=new Date(),wd=['일','월','화','수','목','금','토'];document.getElementById('today-date').textContent=dt.getFullYear()+'년 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+wd[dt.getDay()]+')';const b=DAILY+d.carry,s=d.expenses.filter(e=>e.date===t).reduce((a,e)=>a+e.amount,0),bal=b-s;const be=document.getElementById('balance-display');be.textContent=fmt(bal);be.className='balance-amount'+(bal<0?' negative':'');const sp=[];if(d.carry>0)sp.push('어제 이월 '+fmt(d.carry));else if(d.carry<0)sp.push('어제 초과 '+fmt(Math.abs(d.carry)));sp.push('기본 예산 '+fmt(DAILY));document.getElementById('balance-sub').textContent=sp.join(' · ');document.getElementById('today-spent').textContent=fmt(s);const te=d.expenses.filter(e=>e.date===t).reverse(),l=document.getElementById('tx-list');l.innerHTML=te.length===0?'<div class="empty">오늘 지출 내역이 없어요</div>':te.map(e=>'<div class="tx-item" onclick="openSheet(\''+e.id+'\')"><div class="tx-left"><span class="tx-cat">'+e.category+'</span><span class="tx-memo">'+(e.memo||'—')+'</span></div><span class="tx-amount">'+fmt(e.amount)+'</span></div>').join('');const m=getMonth(),me=d.expenses.filter(e=>e.date.startsWith(m));const cats=['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'],ct=cats.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total),cl=document.getElementById('cat-list');cl.innerHTML=ct.length===0?'<div class="empty">이번 달 지출 내역이 없어요</div>':ct.map(c=>'<div class="cat-item"><span class="cat-name">'+c.name+'</span><span class="cat-amount">'+fmt(c.total)+'</span></div>').join('');}
+function render(){let d=loadData();d=checkRollover(d);const t=getToday(),dt=new Date(),wd=['일','월','화','수','목','금','토'];document.getElementById('today-date').textContent=dt.getFullYear()+'년 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+wd[dt.getDay()]+')';const b=DAILY+d.carry,s=d.expenses.filter(e=>e.date===t).reduce((a,e)=>a+e.amount,0),bal=b-s;const be=document.getElementById('balance-display');be.textContent=fmt(bal);be.className='balance-amount'+(bal<0?' negative':'');const sp=[];if(d.carry>0)sp.push('어제 이월 '+fmt(d.carry));else if(d.carry<0)sp.push('어제 초과 '+fmt(Math.abs(d.carry)));sp.push('기본 예산 '+fmt(DAILY));document.getElementById('balance-sub').textContent=sp.join(' · ');document.getElementById('today-spent').textContent=fmt(s);const te=d.expenses.filter(e=>e.date===t).reverse(),l=document.getElementById('tx-list');l.innerHTML=te.length===0?'<div class="empty">오늘 지출 내역이 없어요</div>':te.map(e=>'<div class="tx-item" onclick="openSheet(\''+e.id+'\')"><div class="tx-left"><span class="tx-cat">'+e.category+'</span><span class="tx-memo">'+(e.memo||'—')+'</span></div><span class="tx-amount">'+fmt(e.amount)+'</span></div>').join('');const m=getMonth(),me=d.expenses.filter(e=>e.date.startsWith(m));const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);const cl=document.getElementById('cat-list');cl.innerHTML=ct.length===0?'<div class="empty">이번 달 지출 내역이 없어요</div>':ct.map(c=>'<div class="cat-item"><span class="cat-name">'+c.name+'</span><span class="cat-amount">'+fmt(c.total)+'</span></div>').join('');}
+function renderDashboard(){const d=loadData();const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;document.getElementById('dash-month-label').textContent=dashYear+'년 '+dashMonth+'월';const me=d.expenses.filter(e=>e.date.startsWith(mStr));const total=me.reduce((a,e)=>a+e.amount,0);document.getElementById('dash-total').textContent=fmt(total);const daysInMonth=new Date(dashYear,dashMonth,0).getDate();const budget=DAILY*daysInMonth;const diff=budget-total;document.getElementById('dash-sub').textContent='월 예산 '+fmt(budget)+' 기준 · '+(diff>=0?fmt(diff)+' 남음':fmt(Math.abs(diff))+' 초과');const days=new Set(me.map(e=>e.date)).size;document.getElementById('dash-days').textContent=days+'일';document.getElementById('dash-avg').textContent=days>0?fmt(Math.round(total/days)):'₩0';const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);const maxVal=ct.length>0?ct[0].total:1;document.getElementById('dash-cat-list').innerHTML=ct.length===0?'<div class="empty">지출 내역이 없어요</div>':ct.map(c=>'<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">'+c.name+'</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%"></div></div></div><div class="cat-dash-amount">'+fmt(c.total)+'</div></div>').join('');}
+function changeMonth(dir){dashMonth+=dir;if(dashMonth>12){dashMonth=1;dashYear++;}if(dashMonth<1){dashMonth=12;dashYear--;}renderDashboard();}
 function openSheet(id){selectedId=id;const d=loadData();const e=d.expenses.find(e=>e.id===id);if(!e)return;document.getElementById('sheet-cat').textContent=e.category;document.getElementById('sheet-amount').textContent=fmt(e.amount);document.getElementById('sheet-memo').textContent=e.memo||'없음';document.getElementById('sheet-overlay').classList.add('show');document.getElementById('sheet').classList.add('show');}
 function closeSheet(){document.getElementById('sheet-overlay').classList.remove('show');document.getElementById('sheet').classList.remove('show');selectedId=null;}
-function startEdit(){const d=loadData();const e=d.expenses.find(e=>e.id===selectedId);if(!e)return;closeSheet();editingId=selectedId;document.getElementById('input-amount').value=e.amount;document.getElementById('input-category').value=e.category;document.getElementById('input-memo').value=e.memo||'';document.getElementById('form-title').textContent='지출 수정';document.getElementById('btn-save').textContent='수정 완료';switchTab('add');window.scrollTo({top:0,behavior:'smooth'});}
+function startEdit(){const d=loadData();const e=d.expenses.find(e=>e.id===selectedId);if(!e)return;closeSheet();editingId=selectedId;document.getElementById('input-amount').value=e.amount;document.getElementById('input-category').value=e.category;document.getElementById('input-memo').value=e.memo||'';document.getElementById('form-title').textContent='지출 수정';document.getElementById('btn-save').textContent='수정 완료';switchTab('today');window.scrollTo({top:0,behavior:'smooth'});}
 function confirmDelete(){if(confirm('이 내역을 삭제할까요?')){const d=loadData();d.expenses=d.expenses.filter(e=>e.id!==selectedId);saveData(d);closeSheet();render();}}
 function clearForm(){document.getElementById('input-amount').value='';document.getElementById('input-memo').value='';document.getElementById('input-category').value='식비';document.getElementById('form-title').textContent='지출 추가';document.getElementById('btn-save').textContent='저장';editingId=null;}
 function saveExpense(){const amount=parseInt(document.getElementById('input-amount').value);if(!amount||amount<=0){alert('금액을 입력해주세요.');return;}const category=document.getElementById('input-category').value;const memo=document.getElementById('input-memo').value.trim();const d=loadData();if(editingId){const idx=d.expenses.findIndex(e=>e.id===editingId);if(idx>-1){d.expenses[idx].amount=amount;d.expenses[idx].category=category;d.expenses[idx].memo=memo;}editingId=null;}else{d.expenses.push({id:Date.now().toString(),date:getToday(),amount,category,memo});}saveData(d);clearForm();render();}
-function switchTab(t){document.getElementById('tab-add').className='tab'+(t==='add'?' active':'');document.getElementById('tab-category').className='tab'+(t==='category'?' active':'');document.getElementById('view-add').style.display=t==='add'?'block':'none';document.getElementById('view-category').style.display=t==='category'?'block':'none';}
+function switchTab(t){['today','category','dashboard'].forEach(n=>{document.getElementById('view-'+n).style.display=t===n?'block':'none';document.getElementById('btab-'+n).className='bottom-tab'+(t===n?' active':'');});if(t==='dashboard')renderDashboard();}
 render();
 </script>
 </body>
