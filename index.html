@@ -82,7 +82,7 @@ canvas#pie-chart { width: 200px; height: 200px; }
 .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 4px; }
 .cal-dow { font-size: 10px; color: #aaa; padding: 3px 0; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-.cal-cell { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; position: relative; min-width: 0; }
+.cal-cell { height: 44px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; position: relative; min-width: 0; overflow: hidden; }
 .cal-cell.empty { background: transparent; }
 .cal-cell .cal-day { font-size: 11px; color: #1a1a1a; line-height: 1; }
 .cal-cell .cal-amt { font-size: 8px; color: #888; margin-top: 1px; line-height: 1; }
