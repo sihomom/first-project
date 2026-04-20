@@ -51,6 +51,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .cat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; }
 .cat-name { font-size: 14px; color: #1a1a1a; }
 .cat-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+/* 월별 탭 */
 .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 .month-nav button { background: none; border: 0.5px solid #e0e0e0; border-radius: 8px; padding: 6px 12px; font-size: 14px; cursor: pointer; color: #1a1a1a; font-family: inherit; }
 .month-label { font-size: 16px; font-weight: 500; color: #1a1a1a; }
@@ -62,18 +63,41 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .dash-small { background: #fff; border-radius: 12px; padding: 1rem; border: 0.5px solid #e0e0e0; }
 .dash-small-label { font-size: 11px; color: #888; margin-bottom: 4px; }
 .dash-small-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
-.cat-dash-item { display: flex; align-items: center; padding: 10px 12px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; margin-bottom: 6px; gap: 10px; }
-.cat-dash-left { flex: 1; }
-.cat-dash-name { font-size: 14px; color: #1a1a1a; margin-bottom: 4px; }
-.cat-dash-bar-wrap { background: #f0f0ec; border-radius: 4px; height: 5px; overflow: hidden; }
-.cat-dash-bar { height: 100%; background: #1a1a1a; border-radius: 4px; }
-.cat-dash-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+/* 토글 */
+.view-toggle { display: flex; background: #f0f0ec; border-radius: 10px; padding: 3px; margin-bottom: 1rem; }
+.view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; }
+.view-toggle-btn.active { background: #fff; color: #1a1a1a; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+/* 파이차트 */
+.pie-wrap { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
+.pie-canvas-wrap { position: relative; width: 200px; height: 200px; margin: 0.5rem auto 1rem; }
+canvas#pie-chart { width: 200px; height: 200px; }
+.pie-legend { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.pie-legend-item { display: flex; align-items: center; gap: 8px; }
+.pie-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.pie-legend-name { font-size: 13px; color: #1a1a1a; flex: 1; }
+.pie-legend-amount { font-size: 13px; color: #888; }
+.pie-legend-pct { font-size: 12px; color: #bbb; width: 36px; text-align: right; }
+/* 달력 */
+.cal-wrap { background: #fff; border-radius: 16px; padding: 1rem; border: 0.5px solid #e0e0e0; margin-bottom: 1rem; }
+.cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 6px; }
+.cal-dow { font-size: 11px; color: #aaa; padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-cell { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; position: relative; }
+.cal-cell.empty { background: transparent; }
+.cal-cell .cal-day { font-size: 12px; color: #1a1a1a; line-height: 1; }
+.cal-cell .cal-amt { font-size: 9px; color: #888; margin-top: 2px; line-height: 1; }
+.cal-cell.today .cal-day { font-weight: 700; }
+.cal-legend { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 11px; color: #888; justify-content: flex-end; }
+.cal-legend-bar { display: flex; gap: 2px; }
+.cal-legend-bar span { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+/* 데이터 탭 */
 .data-card { background: #fff; border-radius: 16px; padding: 1.2rem; border: 0.5px solid #e0e0e0; margin-bottom: 1rem; }
 .data-card-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
 .data-card-desc { font-size: 13px; color: #888; margin-bottom: 1rem; line-height: 1.6; }
 .data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; }
 .data-btn.danger { color: #d84040; border-color: #f0c0c0; margin-top: 8px; }
 .data-btn:active { background: #f5f5f0; }
+/* 바텀시트 */
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
 .sheet { position: fixed; bottom: -100%; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-radius: 20px 20px 0 0; padding: 1.5rem 1rem 2.5rem; z-index: 101; transition: bottom 0.3s ease; }
@@ -167,8 +191,37 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
         <div class="dash-small-value" id="dash-avg">₩0</div>
       </div>
     </div>
-    <div class="section-title">카테고리별 지출</div>
-    <div id="dash-cat-list"></div>
+    <div class="view-toggle">
+      <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')">🥧 카테고리 차트</button>
+      <button class="view-toggle-btn" id="toggle-calendar" onclick="switchDashView('calendar')">📅 달력</button>
+    </div>
+    <div id="dash-chart-view">
+      <div class="pie-wrap">
+        <canvas id="pie-chart" width="200" height="200"></canvas>
+        <div class="pie-legend" id="pie-legend"></div>
+      </div>
+    </div>
+    <div id="dash-calendar-view" style="display:none;">
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+          <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div>
+          <div class="cal-dow">토</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-legend">
+          적음
+          <div class="cal-legend-bar">
+            <span style="background:rgba(26,26,26,0.08)"></span>
+            <span style="background:rgba(26,26,26,0.2)"></span>
+            <span style="background:rgba(26,26,26,0.4)"></span>
+            <span style="background:rgba(26,26,26,0.65)"></span>
+            <span style="background:rgba(26,26,26,0.9)"></span>
+          </div>
+          많음
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="view-export" style="display:none;">
@@ -196,24 +249,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 
 <div class="bottom-tab-bar">
   <div class="bottom-tab active" id="btab-today" onclick="switchTab('today')">
-    <div class="icon">💸</div>
-    <div>오늘</div>
+    <div class="icon">💸</div><div>오늘</div>
   </div>
   <div class="bottom-tab" id="btab-category" onclick="switchTab('category')">
-    <div class="icon">📂</div>
-    <div>카테고리</div>
+    <div class="icon">📂</div><div>카테고리</div>
   </div>
   <div class="bottom-tab" id="btab-dashboard" onclick="switchTab('dashboard')">
-    <div class="icon">📊</div>
-    <div>월별</div>
+    <div class="icon">📊</div><div>월별</div>
   </div>
   <div class="bottom-tab" id="btab-export" onclick="switchTab('export')">
-    <div class="icon">📤</div>
-    <div>내보내기</div>
+    <div class="icon">📤</div><div>내보내기</div>
   </div>
   <div class="bottom-tab" id="btab-import" onclick="switchTab('import')">
-    <div class="icon">📥</div>
-    <div>불러오기</div>
+    <div class="icon">📥</div><div>불러오기</div>
   </div>
 </div>
 
@@ -236,7 +284,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 <script>
 const MONTHLY=350000,DAILY=Math.round(MONTHLY/30),STORAGE_KEY='yongdon_data';
 const CATS=['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
-let editingId=null,selectedId=null;
+const PIE_COLORS=['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
+let editingId=null,selectedId=null,dashView='chart';
 let dashYear=new Date().getFullYear(),dashMonth=new Date().getMonth()+1;
 
 function getToday(){return new Date().toISOString().split('T')[0];}
@@ -245,6 +294,7 @@ function loadData(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.
 function saveData(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
 function checkRollover(d){const t=getToday();if(d.lastDate!==t){const s=d.expenses.filter(e=>e.date===d.lastDate).reduce((a,e)=>a+e.amount,0);d.carry=DAILY+d.carry-s;d.lastDate=t;saveData(d);}return d;}
 function fmt(n){return'₩'+Math.round(n).toLocaleString('ko-KR');}
+function fmtShort(n){return n>=10000?Math.round(n/1000)+'k':n>=1000?Math.round(n/100)/10+'k':String(n);}
 
 function render(){
   let d=loadData();d=checkRollover(d);
@@ -282,10 +332,78 @@ function renderDashboard(){
   const days=new Set(me.map(e=>e.date)).size;
   document.getElementById('dash-days').textContent=days+'일';
   document.getElementById('dash-avg').textContent=days>0?fmt(Math.round(total/days)):'₩0';
-  const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
-  const maxVal=ct.length>0?ct[0].total:1;
-  document.getElementById('dash-cat-list').innerHTML=ct.length===0?'<div class="empty">지출 내역이 없어요</div>':
-    ct.map(c=>'<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">'+c.name+'</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%"></div></div></div><div class="cat-dash-amount">'+fmt(c.total)+'</div></div>').join('');
+  if(dashView==='chart') renderPie(me);
+  else renderCalendar(mStr,daysInMonth,me);
+}
+
+function renderPie(me){
+  const ct=CATS.map((c,i)=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0),color:PIE_COLORS[i]})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
+  const total=ct.reduce((a,c)=>a+c.total,0);
+  const canvas=document.getElementById('pie-chart');
+  const ctx=canvas.getContext('2d');
+  const cx=100,cy=100,r=85,ir=50;
+  ctx.clearRect(0,0,200,200);
+  if(ct.length===0){
+    ctx.fillStyle='#f0f0ec';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fill();
+    document.getElementById('pie-legend').innerHTML='<div class="empty" style="padding:1rem 0;">지출 내역이 없어요</div>';
+    return;
+  }
+  let start=-Math.PI/2;
+  ct.forEach(c=>{
+    const angle=(c.total/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+angle);ctx.closePath();
+    ctx.fillStyle=c.color;ctx.fill();
+    start+=angle;
+  });
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.font='bold 13px -apple-system';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(fmt(total),cx,cy);
+  document.getElementById('pie-legend').innerHTML=ct.map((c,i)=>
+    '<div class="pie-legend-item">'+
+      '<div class="pie-legend-dot" style="background:'+c.color+'"></div>'+
+      '<div class="pie-legend-name">'+c.name+'</div>'+
+      '<div class="pie-legend-amount">'+fmt(c.total)+'</div>'+
+      '<div class="pie-legend-pct">'+Math.round(c.total/total*100)+'%</div>'+
+    '</div>'
+  ).join('');
+}
+
+function renderCalendar(mStr,daysInMonth,me){
+  const today=getToday();
+  const dayTotals={};
+  me.forEach(e=>{dayTotals[e.date]=(dayTotals[e.date]||0)+e.amount;});
+  const maxDay=Math.max(...Object.values(dayTotals),1);
+  const firstDay=new Date(mStr+'-01').getDay();
+  let html='';
+  for(let i=0;i<firstDay;i++) html+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=mStr+'-'+(d<10?'0':'')+d;
+    const amt=dayTotals[dateStr]||0;
+    const alpha=amt>0?0.08+0.82*(amt/maxDay):0;
+    const bg=amt>0?'rgba(26,26,26,'+alpha.toFixed(2)+')':'#f5f5f0';
+    const textColor=alpha>0.5?'#fff':'#1a1a1a';
+    const isToday=dateStr===today;
+    html+='<div class="cal-cell'+(isToday?' today':'')+'" style="background:'+bg+';">'+
+      '<span class="cal-day" style="color:'+textColor+';'+(isToday?'text-decoration:underline;':'')+'">'+d+'</span>'+
+      (amt>0?'<span class="cal-amt" style="color:'+textColor+';">'+fmtShort(amt)+'</span>':'') +
+    '</div>';
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+
+function switchDashView(v){
+  dashView=v;
+  document.getElementById('toggle-chart').className='view-toggle-btn'+(v==='chart'?' active':'');
+  document.getElementById('toggle-calendar').className='view-toggle-btn'+(v==='calendar'?' active':'');
+  document.getElementById('dash-chart-view').style.display=v==='chart'?'block':'none';
+  document.getElementById('dash-calendar-view').style.display=v==='calendar'?'block':'none';
+  const d=loadData();
+  const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;
+  const me=d.expenses.filter(e=>e.date.startsWith(mStr));
+  const daysInMonth=new Date(dashYear,dashMonth,0).getDate();
+  if(v==='chart') renderPie(me);
+  else renderCalendar(mStr,daysInMonth,me);
 }
 
 function changeMonth(dir){
@@ -309,8 +427,7 @@ function exportData(){
 }
 
 function importData(event){
-  const file=event.target.files[0];
-  if(!file)return;
+  const file=event.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
@@ -320,22 +437,17 @@ function importData(event){
       const existingIds=new Set(current.expenses.map(e=>e.id));
       const newExp=imported.expenses.filter(e=>!existingIds.has(e.id));
       current.expenses=[...current.expenses,...newExp];
-      saveData(current);
-      render();
+      saveData(current);render();
       alert(newExp.length+'개 항목을 불러왔어요!');
-    }catch(err){
-      alert('파일을 읽는 중 오류가 발생했어요: '+err.message);
-    }
+    }catch(err){alert('파일을 읽는 중 오류가 발생했어요: '+err.message);}
   };
-  reader.readAsText(file);
-  event.target.value='';
+  reader.readAsText(file);event.target.value='';
 }
 
 function resetData(){
   if(confirm('정말 모든 데이터를 삭제할까요?\n삭제 전 내보내기를 먼저 해두세요.')){
     if(confirm('마지막 확인이에요. 정말 삭제할까요?')){
-      localStorage.removeItem(STORAGE_KEY);
-      render();
+      localStorage.removeItem(STORAGE_KEY);render();
       alert('데이터가 초기화됐어요.');
     }
   }
