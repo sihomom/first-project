@@ -27,7 +27,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .bottom-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-top: 0.5px solid #e0e0e0; display: flex; z-index: 50; }
 .bottom-tab { flex: 1; padding: 12px 2px 14px; text-align: center; cursor: pointer; font-size: 9px; color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .bottom-tab.active { color: #1a1a1a; }
-.bottom-tab .icon { font-size: 22px; line-height: 1; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+.bottom-tab .icon { font-size: 20px; line-height: 1; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
 .form-wrap { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
 .form-row { margin-bottom: 12px; }
@@ -58,6 +58,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .dash-small { background: #fff; border-radius: 12px; padding: 1rem; border: 0.5px solid #e0e0e0; }
 .dash-small-label { font-size: 11px; color: #888; margin-bottom: 4px; }
 .dash-small-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+.savings-dash-card { background: #f0faf0; border-radius: 12px; padding: 1rem; border: 0.5px solid #a8d8a8; }
+.savings-dash-label { font-size: 11px; color: #2d7a2d; margin-bottom: 4px; }
+.savings-dash-value { font-size: 16px; font-weight: 500; color: #2d7a2d; }
 .view-toggle { display: flex; background: #f0f0ec; border-radius: 10px; padding: 3px; margin-bottom: 1rem; }
 .view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; }
 .view-toggle-btn.active { background: #fff; color: #1a1a1a; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
@@ -75,17 +78,37 @@ canvas#pie-chart { width: 200px; height: 200px; }
 .cat-dash-bar-wrap { background: #f0f0ec; border-radius: 4px; height: 6px; overflow: hidden; }
 .cat-dash-bar { height: 100%; border-radius: 4px; }
 .cat-dash-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
-/* 예산 수정 */
 .budget-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .budget-input { flex: 1; font-size: 15px; padding: 8px 10px; border: 0.5px solid #ddd; border-radius: 8px; background: #fafafa; color: #1a1a1a; font-family: inherit; }
 .budget-btn { padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; white-space: nowrap; }
 .budget-btn:active { background: #f5f5f0; }
+/* 위시리스트 */
+.savings-card { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; text-align: center; }
+.savings-label { font-size: 13px; color: #888; margin-bottom: 6px; }
+.savings-amount { font-size: 28px; font-weight: 500; color: #59a14f; }
+.savings-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+.wish-list { display: flex; flex-direction: column; gap: 8px; }
+.wish-item { display: flex; align-items: center; padding: 12px 14px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; gap: 10px; }
+.wish-item.affordable { background: #f0faf0; border-color: #a8d8a8; }
+.wish-item.affordable .wish-name { color: #2d7a2d; }
+.wish-item.affordable .wish-price { color: #2d7a2d; }
+.wish-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #59a14f; color: #fff; white-space: nowrap; flex-shrink: 0; }
+.wish-left { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.wish-name { font-size: 14px; color: #1a1a1a; font-weight: 500; }
+.wish-memo { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wish-price { font-size: 13px; color: #888; }
+.wish-delete { font-size: 18px; color: #ddd; cursor: pointer; flex-shrink: 0; line-height: 1; }
+.wish-delete:active { color: #d84040; }
+.wish-form { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
+.wish-form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
+/* 데이터 탭 */
 .data-card { background: #fff; border-radius: 16px; padding: 1.2rem; border: 0.5px solid #e0e0e0; margin-bottom: 1rem; }
 .data-card-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
 .data-card-desc { font-size: 13px; color: #888; margin-bottom: 1rem; line-height: 1.6; }
 .data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; }
 .data-btn.danger { color: #d84040; border-color: #f0c0c0; margin-top: 8px; }
 .data-btn:active { background: #f5f5f0; }
+/* 바텀시트 */
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
 .sheet { position: fixed; bottom: -100%; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-radius: 20px 20px 0 0; padding: 1.5rem 1rem 2.5rem; z-index: 101; transition: bottom 0.3s ease; }
@@ -107,6 +130,7 @@ canvas#pie-chart { width: 200px; height: 200px; }
     <div class="date" id="today-date"></div>
   </div>
 
+  <!-- 오늘 탭 -->
   <div id="view-today">
     <div class="balance-card">
       <div class="balance-label">오늘의 예산</div>
@@ -153,6 +177,7 @@ canvas#pie-chart { width: 200px; height: 200px; }
     <div class="tx-list" id="tx-list"></div>
   </div>
 
+  <!-- 차트 탭 -->
   <div id="view-dashboard" style="display:none;">
     <div class="month-nav">
       <button onclick="changeMonth(-1)">◀</button>
@@ -161,7 +186,7 @@ canvas#pie-chart { width: 200px; height: 200px; }
     </div>
     <div class="dash-card">
       <div class="dash-card-label" id="dash-budget-label">월 예산</div>
-      <div class="dash-card-value" id="dash-total">₩0</div>
+      <div class="dash-card-value" id="dash-total">0원</div>
       <div class="dash-card-sub" id="dash-sub"></div>
       <div class="budget-row">
         <input class="budget-input" type="number" id="budget-input" placeholder="예산 입력 (원)" />
@@ -175,10 +200,16 @@ canvas#pie-chart { width: 200px; height: 200px; }
       </div>
       <div class="dash-small">
         <div class="dash-small-label">일평균 지출</div>
-        <div class="dash-small-value" id="dash-avg">₩0</div>
+        <div class="dash-small-value" id="dash-avg">0원</div>
       </div>
     </div>
-    <div class="view-toggle">
+    <div class="dash-grid">
+      <div class="savings-dash-card" style="grid-column:1/-1;">
+        <div class="savings-dash-label">💰 이번 주기 절약한 금액</div>
+        <div class="savings-dash-value" id="dash-savings">0원</div>
+      </div>
+    </div>
+    <div class="view-toggle" style="margin-top:1rem;">
       <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')">🥧 파이차트</button>
       <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')">📊 막대그래프</button>
     </div>
@@ -193,6 +224,37 @@ canvas#pie-chart { width: 200px; height: 200px; }
     </div>
   </div>
 
+  <!-- 위시리스트 탭 -->
+  <div id="view-wish" style="display:none;">
+    <div class="savings-card">
+      <div class="savings-label">💰 현재까지 절약한 금액</div>
+      <div class="savings-amount" id="savings-amount">0원</div>
+      <div class="savings-sub" id="savings-sub">이번 주기 예산 대비 남은 금액</div>
+    </div>
+    <div class="wish-form">
+      <div class="wish-form-title">위시리스트 추가</div>
+      <div class="form-row">
+        <label>항목 이름</label>
+        <input type="text" id="wish-name-input" placeholder="갖고 싶은 것" />
+      </div>
+      <div class="form-row">
+        <label>금액 (원)</label>
+        <input type="number" id="wish-price-input" placeholder="0" />
+      </div>
+      <div class="form-row">
+        <label>메모 (선택)</label>
+        <input type="text" id="wish-memo-input" placeholder="링크나 메모" />
+      </div>
+      <div class="form-btns">
+        <button class="btn-cancel" onclick="clearWishForm()">초기화</button>
+        <button class="btn-save" onclick="addWish()">추가</button>
+      </div>
+    </div>
+    <div class="section-title">위시리스트 <span style="font-size:12px;color:#bbb;">살 수 있는 항목은 초록색</span></div>
+    <div class="wish-list" id="wish-list"></div>
+  </div>
+
+  <!-- 내보내기 탭 -->
   <div id="view-export" style="display:none;">
     <div class="data-card">
       <div class="data-card-title">📤 데이터 내보내기</div>
@@ -206,6 +268,7 @@ canvas#pie-chart { width: 200px; height: 200px; }
     </div>
   </div>
 
+  <!-- 불러오기 탭 -->
   <div id="view-import" style="display:none;">
     <div class="data-card">
       <div class="data-card-title">📥 데이터 불러오기</div>
@@ -222,6 +285,9 @@ canvas#pie-chart { width: 200px; height: 200px; }
   </div>
   <div class="bottom-tab" id="btab-dashboard" onclick="switchTab('dashboard')">
     <div class="icon">📊</div><div>차트</div>
+  </div>
+  <div class="bottom-tab" id="btab-wish" onclick="switchTab('wish')">
+    <div class="icon">🌟</div><div>위시리스트</div>
   </div>
   <div class="bottom-tab" id="btab-export" onclick="switchTab('export')">
     <div class="icon">📤</div><div>내보내기</div>
@@ -251,51 +317,38 @@ canvas#pie-chart { width: 200px; height: 200px; }
 const DEFAULT_MONTHLY=350000;
 const STORAGE_KEY='yongdon_data';
 const BUDGET_KEY='yongdon_budget';
+const WISH_KEY='yongdon_wish';
 const CATS=['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
 const PIE_COLORS=['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
 let editingId=null,selectedId=null,dashView='chart';
 let dashYear=new Date().getFullYear(),dashMonth=new Date().getMonth()+1;
 
-function getMonthly(){
-  const v=localStorage.getItem(BUDGET_KEY);
-  return v?parseInt(v):DEFAULT_MONTHLY;
-}
+function getMonthly(){const v=localStorage.getItem(BUDGET_KEY);return v?parseInt(v):DEFAULT_MONTHLY;}
 function getDaily(){return Math.floor(getMonthly()/30);}
-
-// 오늘 날짜 (25일~다음달 24일 기준 주기)
 function getToday(){return new Date().toISOString().split('T')[0];}
-
-// 현재 용돈 주기의 시작일/종료일 계산 (25일~다음달 24일)
-function getCurrentPeriod(){
-  const now=new Date();
-  const d=now.getDate();
-  let startYear=now.getFullYear(),startMonth=now.getMonth()+1;
-  if(d<25){
-    startMonth-=1;
-    if(startMonth<1){startMonth=12;startYear--;}
-  }
-  const endYear=startMonth===12?startYear+1:startYear;
-  const endMonth=startMonth===12?1:startMonth+1;
-  return {
-    start:startYear+'-'+(startMonth<10?'0':'')+startMonth+'-25',
-    end:endYear+'-'+(endMonth<10?'0':'')+endMonth+'-24',
-    label:startMonth+'월 25일 ~ '+endMonth+'월 24일'
-  };
-}
-
 function loadData(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):{carry:0,lastDate:getToday(),expenses:[]};}catch(e){return{carry:0,lastDate:getToday(),expenses:[]};}}
 function saveData(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
-function checkRollover(d){
-  const t=getToday();
-  if(d.lastDate!==t){
-    const s=d.expenses.filter(e=>e.date===d.lastDate).reduce((a,e)=>a+e.amount,0);
-    d.carry=getDaily()+d.carry-s;
-    d.lastDate=t;saveData(d);
-  }
-  return d;
-}
+function loadWish(){try{const r=localStorage.getItem(WISH_KEY);return r?JSON.parse(r):[];}catch(e){return[];}}
+function saveWish(w){try{localStorage.setItem(WISH_KEY,JSON.stringify(w));}catch(e){}}
+function checkRollover(d){const t=getToday();if(d.lastDate!==t){const s=d.expenses.filter(e=>e.date===d.lastDate).reduce((a,e)=>a+e.amount,0);d.carry=getDaily()+d.carry-s;d.lastDate=t;saveData(d);}return d;}
 function fmt(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
 function fmtW(n){return'₩'+Math.round(n).toLocaleString('ko-KR');}
+
+// 현재 주기(25일~다음달 24일) 절약 금액 계산
+function calcSavings(){
+  const d=loadData();
+  const now=new Date();
+  const day=now.getDate();
+  let startYear=now.getFullYear(),startMonth=now.getMonth()+1;
+  if(day<25){startMonth--;if(startMonth<1){startMonth=12;startYear--;}}
+  const nextMonth=startMonth===12?1:startMonth+1;
+  const nextYear=startMonth===12?startYear+1:startYear;
+  const periodStart=startYear+'-'+(startMonth<10?'0':'')+startMonth+'-25';
+  const periodEnd=nextYear+'-'+(nextMonth<10?'0':'')+nextMonth+'-24';
+  const spent=d.expenses.filter(e=>e.date>=periodStart&&e.date<=periodEnd).reduce((a,e)=>a+e.amount,0);
+  const monthly=getMonthly();
+  return Math.max(0,monthly-spent);
+}
 
 function saveBudget(){
   const v=parseInt(document.getElementById('budget-input').value);
@@ -303,8 +356,7 @@ function saveBudget(){
   localStorage.setItem(BUDGET_KEY,String(v));
   document.getElementById('budget-input').value='';
   alert('월 예산이 '+fmt(v)+'으로 변경됐어요.');
-  render();
-  renderDashboard();
+  render();renderDashboard();
 }
 
 function render(){
@@ -329,34 +381,80 @@ function render(){
 function renderDashboard(){
   const d=loadData();
   const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;
-
-  // 25일~다음달 24일 기준 라벨
   const nextMonth=dashMonth===12?1:dashMonth+1;
+  const nextYear=dashMonth===12?dashYear+1:dashYear;
+  const nextMStr=nextYear+'-'+(nextMonth<10?'0':'')+nextMonth;
   const periodLabel='('+dashMonth+'월 25일 ~ '+nextMonth+'월 24일)';
   document.getElementById('dash-month-label').textContent=dashYear+'년 '+dashMonth+'월';
   document.getElementById('dash-budget-label').textContent='월 예산 '+periodLabel;
-
-  // 해당 월의 25일~다음달 24일 지출 계산
   const periodStart=mStr+'-25';
-  const nextMStr=(dashMonth===12?(dashYear+1)+'-01':(dashYear)+'-'+(nextMonth<10?'0':'')+nextMonth);
   const periodEnd=nextMStr+'-24';
   const me=d.expenses.filter(e=>e.date>=periodStart&&e.date<=periodEnd);
-
   const monthly=getMonthly();
   const total=me.reduce((a,e)=>a+e.amount,0);
   document.getElementById('dash-total').textContent=fmt(monthly);
+  document.getElementById('budget-input').placeholder=fmt(monthly)+' (변경하려면 입력)';
   const diff=monthly-total;
   document.getElementById('dash-sub').textContent='지출 '+fmt(total)+' · '+(diff>=0?fmt(diff)+' 남음':fmt(Math.abs(diff))+' 초과');
-
-  // 예산 입력란에 현재 예산 placeholder
-  document.getElementById('budget-input').placeholder=fmt(monthly)+' (변경하려면 입력)';
-
   const days=new Set(me.map(e=>e.date)).size;
   document.getElementById('dash-days').textContent=days+'일';
   document.getElementById('dash-avg').textContent=days>0?fmt(Math.round(total/days)):'0원';
 
+  // 절약 금액 (현재 주기 기준)
+  const savings=calcSavings();
+  document.getElementById('dash-savings').textContent=fmt(savings);
+
   if(dashView==='chart') renderPie(me);
   else renderBar(me);
+}
+
+function renderWish(){
+  const savings=calcSavings();
+  document.getElementById('savings-amount').textContent=fmt(savings);
+  document.getElementById('savings-sub').textContent='이번 주기 예산 '+fmt(getMonthly())+' 기준';
+  const wishes=loadWish();
+  const list=document.getElementById('wish-list');
+  if(wishes.length===0){list.innerHTML='<div class="empty">아직 위시리스트가 없어요</div>';return;}
+  list.innerHTML=wishes.map((w,i)=>{
+    const affordable=savings>=w.price;
+    return '<div class="wish-item'+(affordable?' affordable':'')+'">' +
+      '<div class="wish-left">' +
+        '<div class="wish-name">'+w.name+'</div>' +
+        (w.memo?'<div class="wish-memo">'+w.memo+'</div>':'')+
+        '<div class="wish-price">'+fmt(w.price)+'</div>' +
+      '</div>' +
+      (affordable?'<div class="wish-badge">살 수 있어요!</div>':'')+
+      '<div class="wish-delete" onclick="deleteWish('+i+')">×</div>' +
+    '</div>';
+  }).join('');
+}
+
+function addWish(){
+  const name=document.getElementById('wish-name-input').value.trim();
+  const price=parseInt(document.getElementById('wish-price-input').value);
+  const memo=document.getElementById('wish-memo-input').value.trim();
+  if(!name){alert('항목 이름을 입력해주세요.');return;}
+  if(!price||price<=0){alert('금액을 입력해주세요.');return;}
+  const wishes=loadWish();
+  wishes.push({name,price,memo});
+  saveWish(wishes);
+  clearWishForm();
+  renderWish();
+}
+
+function deleteWish(i){
+  if(confirm('이 항목을 삭제할까요?')){
+    const wishes=loadWish();
+    wishes.splice(i,1);
+    saveWish(wishes);
+    renderWish();
+  }
+}
+
+function clearWishForm(){
+  document.getElementById('wish-name-input').value='';
+  document.getElementById('wish-price-input').value='';
+  document.getElementById('wish-memo-input').value='';
 }
 
 function renderPie(me){
@@ -376,8 +474,7 @@ function renderPie(me){
   ct.forEach(c=>{
     const angle=(c.total/total)*Math.PI*2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+angle);ctx.closePath();
-    ctx.fillStyle=c.color;ctx.fill();
-    start+=angle;
+    ctx.fillStyle=c.color;ctx.fill();start+=angle;
   });
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#1a1a1a';ctx.font='bold 13px -apple-system';ctx.textAlign='center';ctx.textBaseline='middle';
@@ -396,15 +493,7 @@ function renderBar(me){
   const ct=CATS.map((c,i)=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0),color:PIE_COLORS[i]})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
   const maxVal=ct.length>0?ct[0].total:1;
   document.getElementById('dash-cat-list').innerHTML=ct.length===0?'<div class="empty">지출 내역이 없어요</div>':
-    ct.map(c=>'<div class="cat-dash-item">'+
-      '<div class="cat-dash-left">'+
-        '<div class="cat-dash-name">'+c.name+'</div>'+
-        '<div class="cat-dash-bar-wrap">'+
-          '<div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%;background:'+c.color+'"></div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="cat-dash-amount">'+fmt(c.total)+'</div>'+
-    '</div>').join('');
+    ct.map(c=>'<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">'+c.name+'</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%;background:'+c.color+'"></div></div></div><div class="cat-dash-amount">'+fmt(c.total)+'</div></div>').join('');
 }
 
 function switchDashView(v){
@@ -416,7 +505,8 @@ function switchDashView(v){
   const d=loadData();
   const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;
   const nextMonth=dashMonth===12?1:dashMonth+1;
-  const nextMStr=(dashMonth===12?(dashYear+1)+'-01':(dashYear)+'-'+(nextMonth<10?'0':'')+nextMonth);
+  const nextYear=dashMonth===12?dashYear+1:dashYear;
+  const nextMStr=nextYear+'-'+(nextMonth<10?'0':'')+nextMonth;
   const me=d.expenses.filter(e=>e.date>=(mStr+'-25')&&e.date<=(nextMStr+'-24'));
   if(v==='chart') renderPie(me);
   else renderBar(me);
@@ -431,7 +521,8 @@ function changeMonth(dir){
 
 function exportData(){
   const d=loadData();
-  const json=JSON.stringify(d,null,2);
+  const w=loadWish();
+  const json=JSON.stringify({...d,wishlist:w},null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -453,7 +544,9 @@ function importData(event){
       const existingIds=new Set(current.expenses.map(e=>e.id));
       const newExp=imported.expenses.filter(e=>!existingIds.has(e.id));
       current.expenses=[...current.expenses,...newExp];
-      saveData(current);render();
+      saveData(current);
+      if(imported.wishlist){saveWish(imported.wishlist);}
+      render();
       alert(newExp.length+'개 항목을 불러왔어요!');
     }catch(err){alert('파일을 읽는 중 오류가 발생했어요: '+err.message);}
   };
@@ -477,11 +570,12 @@ function clearForm(){document.getElementById('input-amount').value='';document.g
 function saveExpense(){const amount=parseInt(document.getElementById('input-amount').value);if(!amount||amount<=0){alert('금액을 입력해주세요.');return;}const category=document.getElementById('input-category').value;const memo=document.getElementById('input-memo').value.trim();const d=loadData();if(editingId){const idx=d.expenses.findIndex(e=>e.id===editingId);if(idx>-1){d.expenses[idx].amount=amount;d.expenses[idx].category=category;d.expenses[idx].memo=memo;}editingId=null;}else{d.expenses.push({id:Date.now().toString(),date:getToday(),amount,category,memo});}saveData(d);clearForm();render();}
 
 function switchTab(t){
-  ['today','dashboard','export','import'].forEach(n=>{
+  ['today','dashboard','wish','export','import'].forEach(n=>{
     document.getElementById('view-'+n).style.display=t===n?'block':'none';
     document.getElementById('btab-'+n).className='bottom-tab'+(t===n?' active':'');
   });
   if(t==='dashboard')renderDashboard();
+  if(t==='wish')renderWish();
   window.scrollTo({top:0,behavior:'instant'});
 }
 render();
