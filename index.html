@@ -482,6 +482,7 @@ function switchTab(t){
     document.getElementById('btab-'+n).className='bottom-tab'+(t===n?' active':'');
   });
   if(t==='dashboard')renderDashboard();
+  window.scrollTo({top:0,behavior:'instant'});
 }
 render();
 </script>
