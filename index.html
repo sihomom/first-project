@@ -25,9 +25,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
 .stat-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
 .bottom-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-top: 0.5px solid #e0e0e0; display: flex; z-index: 50; }
-.bottom-tab { flex: 1; padding: 10px 8px 14px; text-align: center; cursor: pointer; font-size: 11px; color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bottom-tab { flex: 1; padding: 8px 2px 12px; text-align: center; cursor: pointer; font-size: 9px; color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .bottom-tab.active { color: #1a1a1a; }
-.bottom-tab .icon { font-size: 22px; line-height: 1; }
+.bottom-tab .icon { font-size: 18px; line-height: 1; }
 .form-wrap { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
 .form-row { margin-bottom: 12px; }
@@ -68,6 +68,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .cat-dash-bar-wrap { background: #f0f0ec; border-radius: 4px; height: 5px; overflow: hidden; }
 .cat-dash-bar { height: 100%; background: #1a1a1a; border-radius: 4px; }
 .cat-dash-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+.data-card { background: #fff; border-radius: 16px; padding: 1.2rem; border: 0.5px solid #e0e0e0; margin-bottom: 1rem; }
+.data-card-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
+.data-card-desc { font-size: 13px; color: #888; margin-bottom: 1rem; line-height: 1.6; }
+.data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; }
+.data-btn.danger { color: #d84040; border-color: #f0c0c0; margin-top: 8px; }
+.data-btn:active { background: #f5f5f0; }
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
 .sheet { position: fixed; bottom: -100%; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-radius: 20px 20px 0 0; padding: 1.5rem 1rem 2.5rem; z-index: 101; transition: bottom 0.3s ease; }
@@ -88,6 +94,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <h1>Daily Wallet</h1>
     <div class="date" id="today-date"></div>
   </div>
+
   <div id="view-today">
     <div class="balance-card">
       <div class="balance-label">오늘의 예산</div>
@@ -133,10 +140,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <div class="section-title">오늘의 지출 내역 <span style="font-size:12px;color:#bbb;">탭하면 수정/삭제</span></div>
     <div class="tx-list" id="tx-list"></div>
   </div>
+
   <div id="view-category" style="display:none;">
     <div class="section-title">이번 달 카테고리별 지출</div>
     <div class="cat-list" id="cat-list"></div>
   </div>
+
   <div id="view-dashboard" style="display:none;">
     <div class="month-nav">
       <button onclick="changeMonth(-1)">◀</button>
@@ -161,7 +170,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <div class="section-title">카테고리별 지출</div>
     <div id="dash-cat-list"></div>
   </div>
+
+  <div id="view-export" style="display:none;">
+    <div class="data-card">
+      <div class="data-card-title">📤 데이터 내보내기</div>
+      <div class="data-card-desc">지금까지 기록된 모든 지출 데이터를 JSON 파일로 저장해요. 앱을 업데이트하거나 기기를 바꾸기 전에 백업해두세요.</div>
+      <button class="data-btn" onclick="exportData()">JSON 파일로 내보내기</button>
+    </div>
+    <div class="data-card">
+      <div class="data-card-title">⚠️ 데이터 초기화</div>
+      <div class="data-card-desc">모든 지출 기록을 삭제해요. 삭제 후에는 복구가 불가능하니 내보내기를 먼저 해두세요.</div>
+      <button class="data-btn danger" onclick="resetData()">전체 데이터 삭제</button>
+    </div>
+  </div>
+
+  <div id="view-import" style="display:none;">
+    <div class="data-card">
+      <div class="data-card-title">📥 데이터 불러오기</div>
+      <div class="data-card-desc">이전에 내보낸 JSON 파일을 불러와서 데이터를 복원해요. 현재 데이터와 병합되며, 중복 항목은 자동으로 제외돼요.</div>
+      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)" />
+      <button class="data-btn" onclick="document.getElementById('import-file').click()">JSON 파일 불러오기</button>
+    </div>
+  </div>
 </div>
+
 <div class="bottom-tab-bar">
   <div class="bottom-tab active" id="btab-today" onclick="switchTab('today')">
     <div class="icon">💸</div>
@@ -175,7 +207,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <div class="icon">📊</div>
     <div>월별</div>
   </div>
+  <div class="bottom-tab" id="btab-export" onclick="switchTab('export')">
+    <div class="icon">📤</div>
+    <div>내보내기</div>
+  </div>
+  <div class="bottom-tab" id="btab-import" onclick="switchTab('import')">
+    <div class="icon">📥</div>
+    <div>불러오기</div>
+  </div>
 </div>
+
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
@@ -191,27 +232,129 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
     <button class="btn-delete" onclick="confirmDelete()">삭제</button>
   </div>
 </div>
+
 <script>
 const MONTHLY=350000,DAILY=Math.round(MONTHLY/30),STORAGE_KEY='yongdon_data';
 const CATS=['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
 let editingId=null,selectedId=null;
 let dashYear=new Date().getFullYear(),dashMonth=new Date().getMonth()+1;
+
 function getToday(){return new Date().toISOString().split('T')[0];}
 function getMonth(){return new Date().toISOString().substring(0,7);}
 function loadData(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):{carry:0,lastDate:getToday(),expenses:[]};}catch(e){return{carry:0,lastDate:getToday(),expenses:[]};}}
 function saveData(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
 function checkRollover(d){const t=getToday();if(d.lastDate!==t){const s=d.expenses.filter(e=>e.date===d.lastDate).reduce((a,e)=>a+e.amount,0);d.carry=DAILY+d.carry-s;d.lastDate=t;saveData(d);}return d;}
 function fmt(n){return'₩'+Math.round(n).toLocaleString('ko-KR');}
-function render(){let d=loadData();d=checkRollover(d);const t=getToday(),dt=new Date(),wd=['일','월','화','수','목','금','토'];document.getElementById('today-date').textContent=dt.getFullYear()+'년 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+wd[dt.getDay()]+')';const b=DAILY+d.carry,s=d.expenses.filter(e=>e.date===t).reduce((a,e)=>a+e.amount,0),bal=b-s;const be=document.getElementById('balance-display');be.textContent=fmt(bal);be.className='balance-amount'+(bal<0?' negative':'');const sp=[];if(d.carry>0)sp.push('어제 이월 '+fmt(d.carry));else if(d.carry<0)sp.push('어제 초과 '+fmt(Math.abs(d.carry)));sp.push('기본 예산 '+fmt(DAILY));document.getElementById('balance-sub').textContent=sp.join(' · ');document.getElementById('today-spent').textContent=fmt(s);const te=d.expenses.filter(e=>e.date===t).reverse(),l=document.getElementById('tx-list');l.innerHTML=te.length===0?'<div class="empty">오늘 지출 내역이 없어요</div>':te.map(e=>'<div class="tx-item" onclick="openSheet(\''+e.id+'\')"><div class="tx-left"><span class="tx-cat">'+e.category+'</span><span class="tx-memo">'+(e.memo||'—')+'</span></div><span class="tx-amount">'+fmt(e.amount)+'</span></div>').join('');const m=getMonth(),me=d.expenses.filter(e=>e.date.startsWith(m));const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);const cl=document.getElementById('cat-list');cl.innerHTML=ct.length===0?'<div class="empty">이번 달 지출 내역이 없어요</div>':ct.map(c=>'<div class="cat-item"><span class="cat-name">'+c.name+'</span><span class="cat-amount">'+fmt(c.total)+'</span></div>').join('');}
-function renderDashboard(){const d=loadData();const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;document.getElementById('dash-month-label').textContent=dashYear+'년 '+dashMonth+'월';const me=d.expenses.filter(e=>e.date.startsWith(mStr));const total=me.reduce((a,e)=>a+e.amount,0);document.getElementById('dash-total').textContent=fmt(total);const daysInMonth=new Date(dashYear,dashMonth,0).getDate();const budget=DAILY*daysInMonth;const diff=budget-total;document.getElementById('dash-sub').textContent='월 예산 '+fmt(budget)+' 기준 · '+(diff>=0?fmt(diff)+' 남음':fmt(Math.abs(diff))+' 초과');const days=new Set(me.map(e=>e.date)).size;document.getElementById('dash-days').textContent=days+'일';document.getElementById('dash-avg').textContent=days>0?fmt(Math.round(total/days)):'₩0';const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);const maxVal=ct.length>0?ct[0].total:1;document.getElementById('dash-cat-list').innerHTML=ct.length===0?'<div class="empty">지출 내역이 없어요</div>':ct.map(c=>'<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">'+c.name+'</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%"></div></div></div><div class="cat-dash-amount">'+fmt(c.total)+'</div></div>').join('');}
-function changeMonth(dir){dashMonth+=dir;if(dashMonth>12){dashMonth=1;dashYear++;}if(dashMonth<1){dashMonth=12;dashYear--;}renderDashboard();}
+
+function render(){
+  let d=loadData();d=checkRollover(d);
+  const t=getToday(),dt=new Date(),wd=['일','월','화','수','목','금','토'];
+  document.getElementById('today-date').textContent=dt.getFullYear()+'년 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+wd[dt.getDay()]+')';
+  const b=DAILY+d.carry,s=d.expenses.filter(e=>e.date===t).reduce((a,e)=>a+e.amount,0),bal=b-s;
+  const be=document.getElementById('balance-display');
+  be.textContent=fmt(bal);be.className='balance-amount'+(bal<0?' negative':'');
+  const sp=[];
+  if(d.carry>0)sp.push('어제 이월 '+fmt(d.carry));
+  else if(d.carry<0)sp.push('어제 초과 '+fmt(Math.abs(d.carry)));
+  sp.push('기본 예산 '+fmt(DAILY));
+  document.getElementById('balance-sub').textContent=sp.join(' · ');
+  document.getElementById('today-spent').textContent=fmt(s);
+  const te=d.expenses.filter(e=>e.date===t).reverse(),l=document.getElementById('tx-list');
+  l.innerHTML=te.length===0?'<div class="empty">오늘 지출 내역이 없어요</div>':
+    te.map(e=>'<div class="tx-item" onclick="openSheet(\''+e.id+'\')"><div class="tx-left"><span class="tx-cat">'+e.category+'</span><span class="tx-memo">'+(e.memo||'—')+'</span></div><span class="tx-amount">'+fmt(e.amount)+'</span></div>').join('');
+  const m=getMonth(),me=d.expenses.filter(e=>e.date.startsWith(m));
+  const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
+  document.getElementById('cat-list').innerHTML=ct.length===0?'<div class="empty">이번 달 지출 내역이 없어요</div>':
+    ct.map(c=>'<div class="cat-item"><span class="cat-name">'+c.name+'</span><span class="cat-amount">'+fmt(c.total)+'</span></div>').join('');
+}
+
+function renderDashboard(){
+  const d=loadData();
+  const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;
+  document.getElementById('dash-month-label').textContent=dashYear+'년 '+dashMonth+'월';
+  const me=d.expenses.filter(e=>e.date.startsWith(mStr));
+  const total=me.reduce((a,e)=>a+e.amount,0);
+  document.getElementById('dash-total').textContent=fmt(total);
+  const daysInMonth=new Date(dashYear,dashMonth,0).getDate();
+  const budget=DAILY*daysInMonth;
+  const diff=budget-total;
+  document.getElementById('dash-sub').textContent='월 예산 '+fmt(budget)+' 기준 · '+(diff>=0?fmt(diff)+' 남음':fmt(Math.abs(diff))+' 초과');
+  const days=new Set(me.map(e=>e.date)).size;
+  document.getElementById('dash-days').textContent=days+'일';
+  document.getElementById('dash-avg').textContent=days>0?fmt(Math.round(total/days)):'₩0';
+  const ct=CATS.map(c=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0)})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
+  const maxVal=ct.length>0?ct[0].total:1;
+  document.getElementById('dash-cat-list').innerHTML=ct.length===0?'<div class="empty">지출 내역이 없어요</div>':
+    ct.map(c=>'<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">'+c.name+'</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%"></div></div></div><div class="cat-dash-amount">'+fmt(c.total)+'</div></div>').join('');
+}
+
+function changeMonth(dir){
+  dashMonth+=dir;
+  if(dashMonth>12){dashMonth=1;dashYear++;}
+  if(dashMonth<1){dashMonth=12;dashYear--;}
+  renderDashboard();
+}
+
+function exportData(){
+  const d=loadData();
+  const json=JSON.stringify(d,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().split('T')[0];
+  a.href=url;a.download='daily-wallet-'+date+'.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  alert('내보내기 완료! 파일 앱에서 확인하세요.');
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(!imported.expenses)throw new Error('올바른 파일이 아니에요.');
+      const current=loadData();
+      const existingIds=new Set(current.expenses.map(e=>e.id));
+      const newExp=imported.expenses.filter(e=>!existingIds.has(e.id));
+      current.expenses=[...current.expenses,...newExp];
+      saveData(current);
+      render();
+      alert(newExp.length+'개 항목을 불러왔어요!');
+    }catch(err){
+      alert('파일을 읽는 중 오류가 발생했어요: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+function resetData(){
+  if(confirm('정말 모든 데이터를 삭제할까요?\n삭제 전 내보내기를 먼저 해두세요.')){
+    if(confirm('마지막 확인이에요. 정말 삭제할까요?')){
+      localStorage.removeItem(STORAGE_KEY);
+      render();
+      alert('데이터가 초기화됐어요.');
+    }
+  }
+}
+
 function openSheet(id){selectedId=id;const d=loadData();const e=d.expenses.find(e=>e.id===id);if(!e)return;document.getElementById('sheet-cat').textContent=e.category;document.getElementById('sheet-amount').textContent=fmt(e.amount);document.getElementById('sheet-memo').textContent=e.memo||'없음';document.getElementById('sheet-overlay').classList.add('show');document.getElementById('sheet').classList.add('show');}
 function closeSheet(){document.getElementById('sheet-overlay').classList.remove('show');document.getElementById('sheet').classList.remove('show');selectedId=null;}
 function startEdit(){const d=loadData();const e=d.expenses.find(e=>e.id===selectedId);if(!e)return;closeSheet();editingId=selectedId;document.getElementById('input-amount').value=e.amount;document.getElementById('input-category').value=e.category;document.getElementById('input-memo').value=e.memo||'';document.getElementById('form-title').textContent='지출 수정';document.getElementById('btn-save').textContent='수정 완료';switchTab('today');window.scrollTo({top:0,behavior:'smooth'});}
 function confirmDelete(){if(confirm('이 내역을 삭제할까요?')){const d=loadData();d.expenses=d.expenses.filter(e=>e.id!==selectedId);saveData(d);closeSheet();render();}}
 function clearForm(){document.getElementById('input-amount').value='';document.getElementById('input-memo').value='';document.getElementById('input-category').value='식비';document.getElementById('form-title').textContent='지출 추가';document.getElementById('btn-save').textContent='저장';editingId=null;}
 function saveExpense(){const amount=parseInt(document.getElementById('input-amount').value);if(!amount||amount<=0){alert('금액을 입력해주세요.');return;}const category=document.getElementById('input-category').value;const memo=document.getElementById('input-memo').value.trim();const d=loadData();if(editingId){const idx=d.expenses.findIndex(e=>e.id===editingId);if(idx>-1){d.expenses[idx].amount=amount;d.expenses[idx].category=category;d.expenses[idx].memo=memo;}editingId=null;}else{d.expenses.push({id:Date.now().toString(),date:getToday(),amount,category,memo});}saveData(d);clearForm();render();}
-function switchTab(t){['today','category','dashboard'].forEach(n=>{document.getElementById('view-'+n).style.display=t===n?'block':'none';document.getElementById('btab-'+n).className='bottom-tab'+(t===n?' active':'');});if(t==='dashboard')renderDashboard();}
+
+function switchTab(t){
+  ['today','category','dashboard','export','import'].forEach(n=>{
+    document.getElementById('view-'+n).style.display=t===n?'block':'none';
+    document.getElementById('btab-'+n).className='bottom-tab'+(t===n?' active':'');
+  });
+  if(t==='dashboard')renderDashboard();
+}
 render();
 </script>
 </body>
