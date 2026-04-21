@@ -116,6 +116,9 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .wish-price { font-size: 13px; color: #888; }
 .wish-delete { font-size: 18px; color: #ddd; cursor: pointer; flex-shrink: 0; line-height: 1; }
 .wish-delete:active { color: #d84040; }
+.wish-drag-handle { font-size: 16px; color: #ccc; cursor: grab; flex-shrink: 0; padding: 0 2px; user-select: none; touch-action: none; }
+.wish-item.drag-over { border: 1.5px dashed #59a14f; }
+.wish-item.dragging { opacity: 0.4; }
 .wish-form { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .wish-form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
 /* 데이터 탭 */
@@ -154,17 +157,21 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <div class="balance-amount" id="balance-display">₩0</div>
       <div class="balance-sub" id="balance-sub"></div>
     </div>
-    <div class="stats">
+    <div class="stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="stat">
         <div class="stat-label">오늘의 지출</div>
         <div class="stat-value" id="today-spent">₩0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">예산 집행 종료</div>
+        <div class="stat-value" id="today-dday">D-0</div>
       </div>
     </div>
     <div class="form-wrap">
       <div class="form-title" id="form-title">지출 추가</div>
       <div class="form-row">
         <label>금액 (원)</label>
-        <input type="number" id="input-amount" placeholder="0" />
+        <input type="text" inputmode="numeric" id="input-amount" placeholder="0" oninput="formatAmountInput(this)" />
       </div>
       <div class="form-row">
         <label>카테고리</label>
@@ -477,12 +484,18 @@ function resetTempPeriod() {
   }
 }
 
-/* ── 이월 처리 ── */
+/* ── 이월 처리 (날짜 gap 전체 반복 계산) ── */
 function checkRollover(d) {
   const t = getToday();
   if (d.lastDate !== t) {
-    const s = d.expenses.filter(e => e.date === d.lastDate).reduce((a,e) => a + e.amount, 0);
-    d.carry = getDaily() + d.carry - s;
+    let cur = new Date(d.lastDate + 'T00:00:00');
+    const end = new Date(t + 'T00:00:00');
+    while (cur < end) {
+      const dateStr = cur.toISOString().split('T')[0];
+      const s = d.expenses.filter(e => e.date === dateStr).reduce((a,e) => a + e.amount, 0);
+      d.carry = getDaily() + d.carry - s;
+      cur.setDate(cur.getDate() + 1);
+    }
     d.lastDate = t;
     saveData(d);
   }
@@ -519,6 +532,56 @@ function saveBudget() {
 }
 
 /* ── 오늘 탭 렌더 ── */
+/* ── 위시리스트 드래그 ── */
+let dragSrcIndex = -1;
+let touchSrcIndex = -1;
+let touchClone = null;
+
+function reorderWish(from, to) {
+  const wishes = loadWish();
+  const item = wishes.splice(from, 1)[0];
+  wishes.splice(to, 0, item);
+  saveWish(wishes);
+  renderWish();
+}
+
+function touchDragStart(e, i) {
+  touchSrcIndex = i;
+  const touch = e.touches[0];
+  const el = e.currentTarget.closest('.wish-item');
+  touchClone = el.cloneNode(true);
+  touchClone.style.cssText = 'position:fixed;opacity:0.7;pointer-events:none;width:' + el.offsetWidth + 'px;z-index:999;left:' + el.getBoundingClientRect().left + 'px;top:' + touch.clientY + 'px;';
+  document.body.appendChild(touchClone);
+}
+
+function touchDragMove(e) {
+  e.preventDefault();
+  if (!touchClone) return;
+  const touch = e.touches[0];
+  touchClone.style.top = (touch.clientY - 20) + 'px';
+  // 현재 터치 위치 아래 요소 찾기
+  touchClone.style.display = 'none';
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+  document.querySelectorAll('.wish-item').forEach(el => el.classList.remove('drag-over'));
+  const target = el ? el.closest('.wish-item') : null;
+  if (target && parseInt(target.dataset.index) !== touchSrcIndex) target.classList.add('drag-over');
+}
+
+function touchDragEnd(e, i) {
+  if (touchClone) { document.body.removeChild(touchClone); touchClone = null; }
+  const touch = e.changedTouches[0];
+  touchClone = null;
+  document.querySelectorAll('.wish-item').forEach(el => el.classList.remove('drag-over'));
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const target = el ? el.closest('.wish-item') : null;
+  if (target) {
+    const toIdx = parseInt(target.dataset.index);
+    if (!isNaN(toIdx) && toIdx !== touchSrcIndex) reorderWish(touchSrcIndex, toIdx);
+  }
+  touchSrcIndex = -1;
+}
+
 function render() {
   checkAutoResetPeriod();
   let d = loadData(); d = checkRollover(d);
@@ -534,6 +597,17 @@ function render() {
   sp.push('기본 예산 ' + fmt(daily));
   document.getElementById('balance-sub').textContent = sp.join(' · ');
   document.getElementById('today-spent').textContent = fmtW(s);
+
+  // D-day: 현재 주기 종료일까지 남은 날
+  const period = getCurrentPeriod();
+  const periodEndDate = new Date(period.end + 'T00:00:00');
+  const todayDate = new Date(t + 'T00:00:00');
+  const ddayDiff = Math.ceil((periodEndDate - todayDate) / (1000 * 60 * 60 * 24));
+  const ddayEl = document.getElementById('today-dday');
+  if (ddayDiff > 0) { ddayEl.textContent = 'D-' + ddayDiff; ddayEl.style.color = '#1a1a1a'; }
+  else if (ddayDiff === 0) { ddayEl.textContent = 'D-Day'; ddayEl.style.color = '#d84040'; }
+  else { ddayEl.textContent = 'D+' + Math.abs(ddayDiff); ddayEl.style.color = '#aaa'; }
+
   const te = d.expenses.filter(e => e.date === t).reverse(), l = document.getElementById('tx-list');
   l.innerHTML = te.length === 0 ? '<div class="empty">오늘 지출 내역이 없어요</div>' :
     te.map(e => '<div class="tx-item" onclick="openSheet(\'' + e.id + '\')"><div class="tx-left"><span class="tx-cat">' + e.category + '</span><span class="tx-memo">' + (e.memo || '—') + '</span></div><span class="tx-amount">' + fmtW(e.amount) + '</span></div>').join('');
@@ -591,12 +665,16 @@ function renderDashboard() {
     document.getElementById('temp-period-text').textContent = '임시 주기 적용 중: ~' + tp.endDate;
     badge.style.display = 'block';
     form.style.display = 'none';
-  } else {
+  } else if (isCurrentMonth) {
     badge.style.display = 'none';
     form.style.display = 'block';
     // date input 기본값: 이번 달 25일
     const defEnd = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-25';
     document.getElementById('period-end-input').value = defEnd;
+  } else {
+    // 현재 달이 아닌 경우 임시 주기 설정 숨김
+    badge.style.display = 'none';
+    form.style.display = 'none';
   }
 
   if (dashView === 'chart') renderPie(me);
@@ -612,18 +690,41 @@ function renderWish() {
   const wishes = loadWish();
   const list = document.getElementById('wish-list');
   if (wishes.length === 0) { list.innerHTML = '<div class="empty">아직 위시리스트가 없어요</div>'; return; }
-  list.innerHTML = wishes.map((w, i) => {
+  list.innerHTML = '';
+  wishes.forEach((w, i) => {
     const affordable = savings >= w.price;
-    return '<div class="wish-item' + (affordable ? ' affordable' : '') + '">' +
+    const item = document.createElement('div');
+    item.className = 'wish-item' + (affordable ? ' affordable' : '');
+    item.draggable = true;
+    item.dataset.index = i;
+    item.innerHTML =
+      '<div class="wish-drag-handle">⠿</div>' +
       '<div class="wish-left">' +
         '<div class="wish-name">' + w.name + '</div>' +
         (w.memo ? '<div class="wish-memo">' + w.memo + '</div>' : '') +
         '<div class="wish-price">' + fmt(w.price) + '</div>' +
       '</div>' +
       (affordable ? '<div class="wish-badge">살 수 있어요!</div>' : '') +
-      '<div class="wish-delete" onclick="deleteWish(' + i + ')">×</div>' +
-    '</div>';
-  }).join('');
+      '<div class="wish-delete">×</div>';
+
+    // 삭제 버튼
+    item.querySelector('.wish-delete').addEventListener('click', () => deleteWish(i));
+
+    // 드래그 이벤트 (마우스)
+    item.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed = 'move'; dragSrcIndex = i; item.classList.add('dragging'); });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.wish-item').forEach(el => el.classList.remove('drag-over')); });
+    item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    item.addEventListener('dragenter', e => { e.preventDefault(); if (dragSrcIndex !== i) item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => { e.preventDefault(); item.classList.remove('drag-over'); if (dragSrcIndex !== i) { reorderWish(dragSrcIndex, i); } });
+
+    // 터치 드래그 (모바일)
+    item.querySelector('.wish-drag-handle').addEventListener('touchstart', e => { touchDragStart(e, i); }, {passive:true});
+    item.querySelector('.wish-drag-handle').addEventListener('touchmove', e => { touchDragMove(e); }, {passive:false});
+    item.querySelector('.wish-drag-handle').addEventListener('touchend', e => { touchDragEnd(e, i); }, {passive:true});
+
+    list.appendChild(item);
+  });
 }
 
 function addWish() {
@@ -688,10 +789,42 @@ function renderPie(me) {
 }
 
 function renderBar(me) {
-  const ct = CATS.map((c,i) => ({name:c, total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0), color:PIE_COLORS[i]})).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+  // 지난 주기 지출 계산
+  const d = loadData();
+  const today = new Date();
+  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
+  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
+  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
+  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
+  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
+  const displayStart = isCurrentMonth ? getCurrentPeriod().start : mStr + '-25';
+  // 지난 주기 종료일 = 이번 주기 시작일 하루 전
+  const prevEndDate = new Date(displayStart + 'T00:00:00');
+  prevEndDate.setDate(prevEndDate.getDate() - 1);
+  const prevStartDate = new Date(prevEndDate);
+  prevStartDate.setMonth(prevStartDate.getMonth() - 1);
+  prevStartDate.setDate(prevStartDate.getDate() + 1);
+  const prevStartStr = prevStartDate.toISOString().split('T')[0];
+  const prevEndStr = prevEndDate.toISOString().split('T')[0];
+  const prevExp = d.expenses.filter(e => e.date >= prevStartStr && e.date <= prevEndStr);
+
+  const ct = CATS.map((c,i) => {
+    const total = me.filter(e => e.category === c).reduce((a,e) => a + e.amount, 0);
+    const prev = prevExp.filter(e => e.category === c).reduce((a,e) => a + e.amount, 0);
+    return {name:c, total, prev, color:PIE_COLORS[i]};
+  }).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+
   const maxVal = ct.length > 0 ? ct[0].total : 1;
   document.getElementById('dash-cat-list').innerHTML = ct.length === 0 ? '<div class="empty">지출 내역이 없어요</div>' :
-    ct.map(c => '<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">' + c.name + '</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:' + Math.round(c.total/maxVal*100) + '%;background:' + c.color + '"></div></div></div><div class="cat-dash-amount">' + fmt(c.total) + '</div></div>').join('');
+    ct.map(c => {
+      let diffHtml = '';
+      if (c.prev > 0) {
+        const diff = c.total - c.prev;
+        if (diff > 0) diffHtml = ' <span style="color:#d84040;font-size:12px;">(+' + fmt(diff) + ')</span>';
+        else if (diff < 0) diffHtml = ' <span style="color:#3a7bd5;font-size:12px;">(-' + fmt(Math.abs(diff)) + ')</span>';
+      }
+      return '<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">' + c.name + '</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:' + Math.round(c.total/maxVal*100) + '%;background:' + c.color + '"></div></div></div><div class="cat-dash-amount" style="text-align:right;">' + fmt(c.total) + diffHtml + '</div></div>';
+    }).join('');
 }
 
 function switchDashView(v) {
@@ -750,7 +883,12 @@ function importData(event) {
       const newExp = imported.expenses.filter(e => !existingIds.has(e.id));
       current.expenses = [...current.expenses, ...newExp];
       saveData(current);
-      if (imported.wishlist) { saveWish(imported.wishlist); }
+      if (imported.wishlist) {
+        const curWish = loadWish();
+        const existingNames = new Set(curWish.map(w => w.name + '_' + w.price));
+        const newWish = imported.wishlist.filter(w => !existingNames.has(w.name + '_' + w.price));
+        saveWish([...curWish, ...newWish]);
+      }
       render();
       alert(newExp.length + '개 항목을 불러왔어요!');
     } catch(err) { alert('파일을 읽는 중 오류가 발생했어요: ' + err.message); }
@@ -761,7 +899,10 @@ function importData(event) {
 function resetData() {
   if (confirm('정말 모든 데이터를 삭제할까요?\n삭제 전 내보내기를 먼저 해두세요.')) {
     if (confirm('마지막 확인이에요. 정말 삭제할까요?')) {
-      localStorage.removeItem(STORAGE_KEY); render();
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(BUDGET_KEY);
+      localStorage.removeItem(PERIOD_KEY);
+      render();
       alert('데이터가 초기화됐어요.');
     }
   }
@@ -785,7 +926,7 @@ function closeSheet() {
 function startEdit() {
   const d = loadData(); const e = d.expenses.find(e => e.id === selectedId); if (!e) return;
   closeSheet(); editingId = selectedId;
-  document.getElementById('input-amount').value = e.amount;
+  document.getElementById('input-amount').value = e.amount.toLocaleString('ko-KR');
   document.getElementById('input-category').value = e.category;
   document.getElementById('input-memo').value = e.memo || '';
   document.getElementById('form-title').textContent = '지출 수정';
@@ -806,8 +947,22 @@ function clearForm() {
   document.getElementById('btn-save').textContent = '저장';
   editingId = null;
 }
+function formatAmountInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const cursor = el.selectionStart;
+  const prevLen = el.value.length;
+  el.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
+  // 커서 위치 보정
+  const diff = el.value.length - prevLen;
+  try { el.setSelectionRange(cursor + diff, cursor + diff); } catch(e) {}
+}
+
+function getAmountValue() {
+  return parseInt(document.getElementById('input-amount').value.replace(/[^0-9]/g, '')) || 0;
+}
+
 function saveExpense() {
-  const amount = parseInt(document.getElementById('input-amount').value);
+  const amount = getAmountValue();
   if (!amount || amount <= 0) { alert('금액을 입력해주세요.'); return; }
   const category = document.getElementById('input-category').value;
   const memo = document.getElementById('input-memo').value.trim();
@@ -820,6 +975,8 @@ function saveExpense() {
     d.expenses.push({id: Date.now().toString(), date: getToday(), amount, category, memo});
   }
   saveData(d); clearForm(); render();
+  // 저장 후 금액 입력창 자동 포커스
+  setTimeout(function() { document.getElementById('input-amount').focus(); }, 80);
 }
 
 /* ── 탭 전환 ── */
