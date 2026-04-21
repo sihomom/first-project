@@ -825,22 +825,44 @@ function renderBar(me) {
         if (diff > 0) diffHtml = ' <span style="color:#d84040;font-size:12px;">(+' + fmt(diff) + ')</span>';
         else if (diff < 0) diffHtml = ' <span style="color:#3a7bd5;font-size:12px;">(-' + fmt(Math.abs(diff)) + ')</span>';
       }
-      return '<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + c.color + ';margin-right:6px;vertical-align:middle;"></span>' + c.name + '</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:' + Math.round(c.total/maxVal*100) + '%;background:' + c.color + '"></div></div></div><div class="cat-dash-amount" style="text-align:right;">' + fmt(c.total) + diffHtml + '</div></div>';
+      const barW = Math.round(c.total / maxVal * 100);
+      return '<div class="cat-dash-item">'
+        + '<div class="cat-dash-left">'
+          + '<div class="cat-dash-name">'
+            + '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + c.color + ';margin-right:6px;vertical-align:middle;"></span>'
+            + c.name
+          + '</div>'
+          + '<div class="cat-dash-bar-wrap">'
+            + '<div class="cat-dash-bar" style="width:' + barW + '%;background:' + c.color + '"></div>'
+          + '</div>'
+        + '</div>'
+        + '<div class="cat-dash-amount" style="text-align:right;">' + fmt(c.total) + diffHtml + '</div>'
+        + '</div>';
     }).join('');
 }
 
 /* ── 카테고리 필터 렌더 ── */
 function renderCatFilter(me) {
   const wrap = document.getElementById('cat-filter-wrap');
-  // 이번 주기에서 실제 지출이 있는 카테고리만 표시
   const usedCats = CATS.filter(c => me.some(e => e.category === c));
-  if (usedCats.length === 0) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '';
+  if (usedCats.length === 0) return;
 
-  let html = '<button class="cat-filter-btn' + (activeCatFilter === null ? ' active' : '') + '" onclick="setCatFilter(null)">전체</button>';
+  // 전체 버튼
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat-filter-btn' + (activeCatFilter === null ? ' active' : '');
+  allBtn.textContent = '전체';
+  allBtn.addEventListener('click', () => setCatFilter(null));
+  wrap.appendChild(allBtn);
+
+  // 카테고리별 버튼 (DOM으로 생성해 문자열 충돌 방지)
   usedCats.forEach(c => {
-    html += '<button class="cat-filter-btn' + (activeCatFilter === c ? ' active' : '') + '" onclick="setCatFilter('' + c + '')">' + c + '</button>';
+    const btn = document.createElement('button');
+    btn.className = 'cat-filter-btn' + (activeCatFilter === c ? ' active' : '');
+    btn.textContent = c;
+    btn.addEventListener('click', () => setCatFilter(c));
+    wrap.appendChild(btn);
   });
-  wrap.innerHTML = html;
 }
 
 function setCatFilter(cat) {
