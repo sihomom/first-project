@@ -418,11 +418,14 @@ function getCurrentPeriod() {
     const endDate = new Date(tp.endDate + 'T00:00:00');
     const todayMid = new Date(getToday() + 'T00:00:00');
     if (endDate >= todayMid) {
-      // 임시 주기의 시작일: 설정일 기준 직전 25일
-      const setD = new Date(tp.setDate + 'T00:00:00');
-      let sy = setD.getFullYear(), sm = setD.getMonth() + 1;
-      if (setD.getDate() < 25) { sm--; if (sm < 1) { sm = 12; sy--; } }
-      const startDate = sy + '-' + String(sm).padStart(2,'0') + '-25';
+      // 시작일: startDate가 저장돼 있으면 그대로 사용, 없으면 직전 25일 계산(하위호환)
+      let startDate = tp.startDate;
+      if (!startDate) {
+        const setD = new Date(tp.setDate + 'T00:00:00');
+        let sy = setD.getFullYear(), sm = setD.getMonth() + 1;
+        if (setD.getDate() < 25) { sm--; if (sm < 1) { sm = 12; sy--; } }
+        startDate = sy + '-' + String(sm).padStart(2,'0') + '-25';
+      }
       return { start: startDate, end: tp.endDate, budget: tp.budget, isTemp: true };
     } else {
       // 임시 주기가 만료됐으면 자동 클리어
@@ -491,11 +494,19 @@ function saveBudget() {
   const v = parseInt(document.getElementById('budget-input').value);
   if (!v || v <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
   localStorage.setItem(BUDGET_KEY, String(v));
-  // 임시 주기가 있으면 예산도 업데이트
   const tp = loadTempPeriod();
-  if (tp) { tp.budget = v; saveTempPeriodData(tp); }
+  if (tp) {
+    // 기존 임시 주기가 있으면 예산 + 시작일만 오늘로 갱신
+    tp.budget = v;
+    tp.startDate = getToday();
+    saveTempPeriodData(tp);
+  } else {
+    // 임시 주기 없을 때: 시작일=오늘, 종료일=기본 주기 종료일로 새로 생성
+    const period = getCurrentPeriod();
+    saveTempPeriodData({ startDate: getToday(), endDate: period.end, budget: v, setDate: getToday() });
+  }
   document.getElementById('budget-input').value = '';
-  alert('예산이 ' + fmt(v) + '으로 변경됐어요.');
+  alert('예산이 ' + fmt(v) + '으로 변경됐어요.\n기간 시작일이 오늘(' + getToday() + ')로 설정됐어요.');
   render(); renderDashboard();
 }
 
