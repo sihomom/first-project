@@ -144,6 +144,42 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; }
 .data-btn.danger { color: #d84040; border-color: #f0c0c0; margin-top: 8px; }
 .data-btn:active { background: #f5f5f0; }
+/* 위시리스트 이미지뷰 */
+.wish-img-upload { width:100%; height:120px; border:1.5px dashed #ddd; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#fafafa; color:#bbb; font-size:13px; gap:6px; }
+.wish-img-upload:active { background:#f0f0ec; }
+.wish-img-preview { width:100%; height:120px; object-fit:cover; border-radius:10px; display:block; }
+.wish-view-toggle { display:flex; background:#f0f0ec; border-radius:10px; padding:3px; margin-bottom:1rem; }
+.wish-view-btn { flex:1; padding:6px; text-align:center; font-size:12px; border-radius:8px; cursor:pointer; color:#888; font-family:inherit; border:none; background:none; }
+.wish-view-btn.active { background:#fff; color:#1a1a1a; font-weight:500; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.wish-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.wish-grid-item { background:#fff; border:0.5px solid #e0e0e0; border-radius:12px; overflow:hidden; position:relative; cursor:default; }
+.wish-grid-item.affordable { border-color:#a8d8a8; }
+.wish-grid-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; background:#f5f5f0; }
+.wish-grid-img-placeholder { width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:28px; background:#f5f5f0; }
+.wish-grid-info { padding:8px 10px; }
+.wish-grid-name { font-size:13px; font-weight:500; color:#1a1a1a; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wish-grid-price { font-size:12px; color:#888; }
+.wish-grid-badge { position:absolute; top:6px; right:6px; font-size:10px; padding:2px 6px; border-radius:8px; background:#59a14f; color:#fff; }
+.wish-grid-del { position:absolute; top:6px; left:6px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,0.35); color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
+/* 설정 탭 */
+.settings-section { margin-bottom:1.2rem; }
+.settings-section-title { font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; padding:0 2px; }
+.settings-card { background:#fff; border-radius:16px; border:0.5px solid #e0e0e0; overflow:hidden; margin-bottom:1rem; }
+.settings-row { display:flex; align-items:center; padding:13px 16px; border-bottom:0.5px solid #f0f0ec; gap:12px; }
+.settings-row:last-child { border-bottom:none; }
+.settings-row-label { flex:1; font-size:14px; color:#1a1a1a; }
+.settings-row-sub { font-size:12px; color:#aaa; margin-top:2px; }
+.settings-row-value { font-size:13px; color:#888; }
+.settings-row input[type=number], .settings-row select { font-size:14px; padding:5px 8px; border:0.5px solid #ddd; border-radius:8px; background:#fafafa; color:#1a1a1a; font-family:inherit; }
+.theme-picker { display:flex; gap:8px; flex-wrap:wrap; }
+.theme-dot { width:28px; height:28px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s; }
+.theme-dot.active { border-color:#1a1a1a; }
+.cat-editor { display:flex; flex-direction:column; gap:6px; }
+.cat-row { display:flex; align-items:center; gap:8px; }
+.cat-row input { flex:1; font-size:14px; padding:7px 10px; border:0.5px solid #ddd; border-radius:8px; background:#fafafa; color:#1a1a1a; font-family:inherit; }
+.cat-color-dot { width:20px; height:20px; border-radius:50%; flex-shrink:0; cursor:pointer; border:1.5px solid rgba(0,0,0,0.1); }
+.settings-save-btn { width:100%; padding:12px; border-radius:10px; font-size:14px; cursor:pointer; font-family:inherit; border:0.5px solid #bbb; background:#fff; color:#1a1a1a; margin-top:4px; }
+.settings-save-btn:active { background:#f5f5f0; }
 /* 바텀시트 */
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
@@ -209,6 +245,10 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <div class="form-row">
         <label>메모 (선택)</label>
         <textarea id="input-memo" placeholder="내용을 입력하세요"></textarea>
+      </div>
+      <div class="form-row" id="input-date-row" style="display:none;">
+        <label>날짜 수정</label>
+        <input type="date" id="input-date" />
       </div>
       <div class="form-btns">
         <button class="btn-cancel" onclick="clearForm()">초기화</button>
@@ -317,24 +357,42 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
         <input type="number" id="wish-price-input" placeholder="0" />
       </div>
       <div class="form-row">
-        <label>메모 (선택)</label>
-        <input type="text" id="wish-memo-input" placeholder="링크나 메모" />
+        <label>이미지 (선택)</label>
+        <input type="file" id="wish-img-input" accept="image/*" style="display:none;" onchange="previewWishImg(event)" />
+        <div id="wish-img-upload-area" class="wish-img-upload" onclick="document.getElementById('wish-img-input').click()">
+          <span style="font-size:24px;">📷</span>
+          <span>사진을 선택하세요</span>
+        </div>
+        <img id="wish-img-preview" class="wish-img-preview" style="display:none;" />
+        <input type="hidden" id="wish-img-data" />
       </div>
       <div class="form-btns">
         <button class="btn-cancel" onclick="clearWishForm()">초기화</button>
         <button class="btn-save" onclick="addWish()">추가</button>
       </div>
     </div>
-    <div class="section-title">위시리스트 <span style="font-size:12px;color:#bbb;">살 수 있는 항목은 초록색</span></div>
-    <div class="wish-list" id="wish-list"></div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin:1rem 0 0.5rem;">
+      <div class="section-title" style="margin:0;">위시리스트 <span style="font-size:12px;color:#bbb;">살 수 있는 항목은 초록색</span></div>
+      <div class="wish-view-toggle" style="margin:0; width:auto;">
+        <button class="wish-view-btn active" id="wish-btn-list" onclick="switchWishView('list')">목록</button>
+        <button class="wish-view-btn" id="wish-btn-grid" onclick="switchWishView('grid')">이미지</button>
+      </div>
+    </div>
+    <div id="wish-list"></div>
   </div>
 
-  <!-- 내보내기 탭 -->
-  <div id="view-export" style="display:none;">
+  <!-- 데이터 관리 탭 -->
+  <div id="view-data" style="display:none;">
     <div class="data-card">
       <div class="data-card-title">📤 데이터 내보내기</div>
       <div class="data-card-desc">지금까지 기록된 모든 지출 데이터를 JSON 파일로 저장해요. 앱을 업데이트하거나 기기를 바꾸기 전에 백업해두세요.</div>
       <button class="data-btn" onclick="exportData()">JSON 파일로 내보내기</button>
+    </div>
+    <div class="data-card">
+      <div class="data-card-title">📥 데이터 불러오기</div>
+      <div class="data-card-desc">이전에 내보낸 JSON 파일을 불러와서 데이터를 복원해요. 현재 데이터와 병합되며, 중복 항목은 자동으로 제외돼요.</div>
+      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)" />
+      <button class="data-btn" onclick="document.getElementById('import-file').click()">JSON 파일 불러오기</button>
     </div>
     <div class="data-card">
       <div class="data-card-title">⚠️ 데이터 초기화</div>
@@ -343,13 +401,37 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
     </div>
   </div>
 
-  <!-- 불러오기 탭 -->
-  <div id="view-import" style="display:none;">
-    <div class="data-card">
-      <div class="data-card-title">📥 데이터 불러오기</div>
-      <div class="data-card-desc">이전에 내보낸 JSON 파일을 불러와서 데이터를 복원해요. 현재 데이터와 병합되며, 중복 항목은 자동으로 제외돼요.</div>
-      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)" />
-      <button class="data-btn" onclick="document.getElementById('import-file').click()">JSON 파일 불러오기</button>
+  <!-- 설정 탭 -->
+  <div id="view-settings" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-section-title">테마</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div style="flex:1;"><div class="settings-row-label">앱 컬러</div></div>
+          <div class="theme-picker" id="theme-picker"></div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">주기 설정</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div style="flex:1;"><div class="settings-row-label">주기 시작일</div><div class="settings-row-sub">매달 몇 일부터 시작할지 설정해요</div></div>
+          <input type="number" id="cycle-start-input" min="1" max="28" style="width:60px;text-align:center;" />
+        </div>
+        <div class="settings-row" style="padding-top:10px;padding-bottom:10px;">
+          <button class="settings-save-btn" onclick="saveCycleStart()">시작일 저장</button>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">카테고리 관리</div>
+      <div class="settings-card">
+        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:10px;">
+          <div class="cat-editor" id="cat-editor"></div>
+          <button class="settings-save-btn" onclick="saveCats()">카테고리 저장</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -364,11 +446,11 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
   <div class="bottom-tab" id="btab-wish" onclick="switchTab('wish')">
     <div class="icon">🌟</div><div>위시리스트</div>
   </div>
-  <div class="bottom-tab" id="btab-export" onclick="switchTab('export')">
-    <div class="icon">📤</div><div>내보내기</div>
+  <div class="bottom-tab" id="btab-data" onclick="switchTab('data')">
+    <div class="icon">🗂️</div><div>데이터</div>
   </div>
-  <div class="bottom-tab" id="btab-import" onclick="switchTab('import')">
-    <div class="icon">📥</div><div>불러오기</div>
+  <div class="bottom-tab" id="btab-settings" onclick="switchTab('settings')">
+    <div class="icon">⚙️</div><div>설정</div>
   </div>
 </div>
 
@@ -382,6 +464,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
   <div class="sheet-value" id="sheet-amount"></div>
   <div class="sheet-info">메모</div>
   <div class="sheet-value" id="sheet-memo"></div>
+  <div class="sheet-info" style="margin-top:8px;">날짜</div>
+  <div class="sheet-value" id="sheet-date-display"></div>
   <div class="sheet-btns">
     <button class="btn-edit" onclick="startEdit()">수정</button>
     <button class="btn-delete" onclick="confirmDelete()">삭제</button>
@@ -398,9 +482,20 @@ const BUDGET_KEY = 'yongdon_budget';
 const WISH_KEY = 'yongdon_wish';
 const PERIOD_KEY = 'yongdon_temp_period'; // 임시 주기 저장
 const FAV_KEY = 'yongdon_favorites';
-const CATS = ['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
+const SETTINGS_KEY = 'yongdon_settings';
+const THEMES = {
+  default: { accent:'#1a1a1a', accentLight:'#f0f0ec', accentBorder:'#bbb', filterActive:'#1a1a1a', filterText:'#fff', savingsCard:'#f0faf0', savingsBorder:'#a8d8a8', savingsText:'#2d7a2d', name:'기본' },
+  green:   { accent:'#2d7a2d', accentLight:'#f0faf0', accentBorder:'#a8d8a8', filterActive:'#2d7a2d', filterText:'#fff', savingsCard:'#f0faf0', savingsBorder:'#a8d8a8', savingsText:'#2d7a2d', name:'그린' },
+  blue:    { accent:'#2563eb', accentLight:'#eff6ff', accentBorder:'#93c5fd', filterActive:'#2563eb', filterText:'#fff', savingsCard:'#eff6ff', savingsBorder:'#93c5fd', savingsText:'#1d4ed8', name:'블루' },
+  pink:    { accent:'#db2777', accentLight:'#fdf2f8', accentBorder:'#f9a8d4', filterActive:'#db2777', filterText:'#fff', savingsCard:'#fdf2f8', savingsBorder:'#f9a8d4', savingsText:'#be185d', name:'핑크' },
+  brown:   { accent:'#7c5c3e', accentLight:'#fdf8f4', accentBorder:'#d4b896', filterActive:'#7c5c3e', filterText:'#fff', savingsCard:'#fdf8f4', savingsBorder:'#d4b896', savingsText:'#5c3d1e', name:'브라운' },
+};
+const THEME_DOT_COLORS = { default:'#1a1a1a', green:'#2d7a2d', blue:'#2563eb', pink:'#db2777', brown:'#7c5c3e' };
+const DEFAULT_CATS = ['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
+let CATS = [...DEFAULT_CATS];
 const PIE_COLORS = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
 let editingId = null, selectedId = null, dashView = 'chart', activeCatFilter = null;
+let wishView = 'list'; // 'list' | 'grid'
 let dashYear = new Date().getFullYear(), dashMonth = new Date().getMonth() + 1;
 
 /* ── 기본 유틸 ── */
@@ -423,6 +518,92 @@ function loadData() {
 function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {} }
 function loadWish() { try { const r = localStorage.getItem(WISH_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; } }
 function saveWish(w) { try { localStorage.setItem(WISH_KEY, JSON.stringify(w)); } catch(e) {} }
+/* ── 설정 유틸 ── */
+function loadSettings() {
+  try { const r = localStorage.getItem(SETTINGS_KEY); return r ? JSON.parse(r) : { theme:'default', cycleStart:25, cats:[...DEFAULT_CATS] }; }
+  catch(e) { return { theme:'default', cycleStart:25, cats:[...DEFAULT_CATS] }; }
+}
+function saveSettings(s) { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch(e) {} }
+
+function applyTheme(themeKey) {
+  const t = THEMES[themeKey] || THEMES.default;
+  const root = document.documentElement.style;
+  root.setProperty('--accent', t.accent);
+  root.setProperty('--accent-light', t.accentLight);
+  root.setProperty('--accent-border', t.accentBorder);
+  root.setProperty('--filter-active', t.filterActive);
+  root.setProperty('--savings-card', t.savingsCard);
+  root.setProperty('--savings-border', t.savingsBorder);
+  root.setProperty('--savings-text', t.savingsText);
+  // 동적 클래스 적용
+  document.querySelectorAll('.cat-filter-btn.active').forEach(el => { el.style.background = t.filterActive; el.style.color = '#fff'; el.style.borderColor = t.filterActive; });
+  document.querySelectorAll('.savings-dash-card,.savings-card').forEach(el => { el.style.background = t.savingsCard; el.style.borderColor = t.savingsBorder; });
+  document.querySelectorAll('.savings-dash-label,.savings-dash-value,.savings-amount,.savings-label').forEach(el => { el.style.color = t.savingsText; });
+  document.querySelectorAll('.bottom-tab.active').forEach(el => { el.style.color = t.accent; });
+  document.querySelectorAll('.btn-save').forEach(el => { el.style.borderColor = t.accentBorder; });
+}
+
+function applySettings() {
+  const s = loadSettings();
+  CATS = s.cats && s.cats.length ? s.cats : [...DEFAULT_CATS];
+  applyTheme(s.theme || 'default');
+}
+
+function renderSettings() {
+  const s = loadSettings();
+  // 테마 피커
+  const picker = document.getElementById('theme-picker');
+  picker.innerHTML = '';
+  Object.keys(THEMES).forEach(key => {
+    const dot = document.createElement('div');
+    dot.className = 'theme-dot' + (s.theme === key ? ' active' : '');
+    dot.style.background = THEME_DOT_COLORS[key];
+    dot.title = THEMES[key].name;
+    dot.addEventListener('click', () => {
+      document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+      const ns = loadSettings(); ns.theme = key; saveSettings(ns);
+      applyTheme(key);
+    });
+    picker.appendChild(dot);
+  });
+  // 주기 시작일
+  document.getElementById('cycle-start-input').value = s.cycleStart || 25;
+  // 카테고리 에디터
+  const editor = document.getElementById('cat-editor');
+  editor.innerHTML = '';
+  const cats = s.cats && s.cats.length ? s.cats : [...DEFAULT_CATS];
+  cats.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    const colorDot = document.createElement('div');
+    colorDot.className = 'cat-color-dot';
+    colorDot.style.background = PIE_COLORS[i] || '#ccc';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.value = c; inp.maxLength = 8;
+    inp.dataset.index = i;
+    row.appendChild(colorDot); row.appendChild(inp);
+    editor.appendChild(row);
+  });
+}
+
+function saveCycleStart() {
+  const v = parseInt(document.getElementById('cycle-start-input').value);
+  if (!v || v < 1 || v > 28) { alert('1~28 사이의 날짜를 입력해주세요.'); return; }
+  const s = loadSettings(); s.cycleStart = v; saveSettings(s);
+  alert(v + '일로 주기 시작일이 변경됐어요.');
+  render();
+}
+
+function saveCats() {
+  const inputs = document.querySelectorAll('#cat-editor input');
+  const cats = Array.from(inputs).map(i => i.value.trim()).filter(v => v);
+  if (cats.length === 0) { alert('카테고리를 1개 이상 입력해주세요.'); return; }
+  const s = loadSettings(); s.cats = cats; saveSettings(s);
+  CATS = cats;
+  alert('카테고리가 저장됐어요.');
+}
+
 function loadFavs() { try { const r = localStorage.getItem(FAV_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; } }
 function saveFavs(f) { try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch(e) {} }
 
@@ -446,7 +627,8 @@ function clearTempPeriodData() {
 // 오늘이 25일이면 임시 주기 자동 리셋
 function checkAutoResetPeriod() {
   const today = new Date();
-  if (today.getDate() === 25) {
+  const cycleStart = (loadSettings().cycleStart) || 25;
+  if (today.getDate() === cycleStart) {
     const tp = loadTempPeriod();
     if (tp) {
       clearTempPeriodData();
@@ -483,14 +665,17 @@ function getCurrentPeriod() {
     }
   }
 
-  // 기본: 이번 달 25일 ~ 다음달 24일
+  // 기본: cycleStart일 ~ 다음달 (cycleStart-1)일
+  const cycleStart = (loadSettings().cycleStart) || 25;
+  const cycleEnd = cycleStart - 1;
   let sy = today.getFullYear(), sm = today.getMonth() + 1;
-  if (day < 25) { sm--; if (sm < 1) { sm = 12; sy--; } }
+  if (day < cycleStart) { sm--; if (sm < 1) { sm = 12; sy--; } }
   const nm = sm === 12 ? 1 : sm + 1;
   const ny = sm === 12 ? sy + 1 : sy;
+  const endDay = cycleEnd === 0 ? new Date(ny, nm - 1, 0).getDate() : cycleEnd;
   return {
-    start: sy + '-' + String(sm).padStart(2,'0') + '-25',
-    end: ny + '-' + String(nm).padStart(2,'0') + '-24',
+    start: sy + '-' + String(sm).padStart(2,'0') + '-' + String(cycleStart).padStart(2,'0'),
+    end: ny + '-' + String(nm).padStart(2,'0') + '-' + String(endDay).padStart(2,'0'),
     budget: getMonthly(),
     isTemp: false
   };
@@ -782,50 +967,97 @@ function renderWish() {
   const list = document.getElementById('wish-list');
   if (wishes.length === 0) { list.innerHTML = '<div class="empty">아직 위시리스트가 없어요</div>'; return; }
   list.innerHTML = '';
-  wishes.forEach((w, i) => {
-    const affordable = savings >= w.price;
-    const item = document.createElement('div');
-    item.className = 'wish-item' + (affordable ? ' affordable' : '');
-    item.draggable = true;
-    item.dataset.index = i;
-    item.innerHTML =
-      '<div class="wish-drag-handle">⠿</div>' +
-      '<div class="wish-left">' +
-        '<div class="wish-name">' + w.name + '</div>' +
-        (w.memo ? '<div class="wish-memo">' + w.memo + '</div>' : '') +
-        '<div class="wish-price">' + fmt(w.price) + '</div>' +
-      '</div>' +
-      (affordable ? '<div class="wish-badge">살 수 있어요!</div>' : '') +
-      '<div class="wish-delete">×</div>';
+  if (wishView === 'grid') {
+    list.className = 'wish-grid';
+    wishes.forEach((w, i) => {
+      const affordable = savings >= w.price;
+      const item = document.createElement('div');
+      item.className = 'wish-grid-item' + (affordable ? ' affordable' : '');
+      const imgHtml = w.img
+        ? '<img class="wish-grid-img" src="' + w.img + '" />'
+        : '<div class="wish-grid-img-placeholder">🛍️</div>';
+      item.innerHTML = imgHtml +
+        '<div class="wish-grid-info">' +
+          '<div class="wish-grid-name">' + w.name + '</div>' +
+          '<div class="wish-grid-price">' + fmt(w.price) + '</div>' +
+        '</div>' +
+        (affordable ? '<div class="wish-grid-badge">살 수 있어요!</div>' : '') +
+        '<div class="wish-grid-del">×</div>';
+      item.querySelector('.wish-grid-del').addEventListener('click', () => deleteWish(i));
+      list.appendChild(item);
+    });
+  } else {
+    list.className = 'wish-list';
+    wishes.forEach((w, i) => {
+      const affordable = savings >= w.price;
+      const item = document.createElement('div');
+      item.className = 'wish-item' + (affordable ? ' affordable' : '');
+      item.draggable = true;
+      item.dataset.index = i;
+      const imgThumb = w.img ? '<img src="' + w.img + '" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;" />' : '';
+      item.innerHTML =
+        '<div class="wish-drag-handle">⠿</div>' +
+        imgThumb +
+        '<div class="wish-left">' +
+          '<div class="wish-name">' + w.name + '</div>' +
+          '<div class="wish-price">' + fmt(w.price) + '</div>' +
+        '</div>' +
+        (affordable ? '<div class="wish-badge">살 수 있어요!</div>' : '') +
+        '<div class="wish-delete">×</div>';
+      item.querySelector('.wish-delete').addEventListener('click', () => deleteWish(i));
+      item.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed = 'move'; dragSrcIndex = i; item.classList.add('dragging'); });
+      item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.wish-item').forEach(el => el.classList.remove('drag-over')); });
+      item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+      item.addEventListener('dragenter', e => { e.preventDefault(); if (dragSrcIndex !== i) item.classList.add('drag-over'); });
+      item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+      item.addEventListener('drop', e => { e.preventDefault(); item.classList.remove('drag-over'); if (dragSrcIndex !== i) { reorderWish(dragSrcIndex, i); } });
+      item.querySelector('.wish-drag-handle').addEventListener('touchstart', e => { touchDragStart(e, i); }, {passive:true});
+      item.querySelector('.wish-drag-handle').addEventListener('touchmove', e => { touchDragMove(e); }, {passive:false});
+      item.querySelector('.wish-drag-handle').addEventListener('touchend', e => { touchDragEnd(e, i); }, {passive:true});
+      list.appendChild(item);
+    });
+  }
+}
 
-    // 삭제 버튼
-    item.querySelector('.wish-delete').addEventListener('click', () => deleteWish(i));
+function previewWishImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    // 이미지 압축 (최대 400px)
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const max = 400;
+      let w = img.width, h = img.height;
+      if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const data = canvas.toDataURL('image/jpeg', 0.75);
+      document.getElementById('wish-img-data').value = data;
+      const preview = document.getElementById('wish-img-preview');
+      preview.src = data; preview.style.display = 'block';
+      document.getElementById('wish-img-upload-area').style.display = 'none';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-    // 드래그 이벤트 (마우스)
-    item.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed = 'move'; dragSrcIndex = i; item.classList.add('dragging'); });
-    item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.wish-item').forEach(el => el.classList.remove('drag-over')); });
-    item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-    item.addEventListener('dragenter', e => { e.preventDefault(); if (dragSrcIndex !== i) item.classList.add('drag-over'); });
-    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
-    item.addEventListener('drop', e => { e.preventDefault(); item.classList.remove('drag-over'); if (dragSrcIndex !== i) { reorderWish(dragSrcIndex, i); } });
-
-    // 터치 드래그 (모바일)
-    item.querySelector('.wish-drag-handle').addEventListener('touchstart', e => { touchDragStart(e, i); }, {passive:true});
-    item.querySelector('.wish-drag-handle').addEventListener('touchmove', e => { touchDragMove(e); }, {passive:false});
-    item.querySelector('.wish-drag-handle').addEventListener('touchend', e => { touchDragEnd(e, i); }, {passive:true});
-
-    list.appendChild(item);
-  });
+function switchWishView(v) {
+  wishView = v;
+  document.getElementById('wish-btn-list').className = 'wish-view-btn' + (v === 'list' ? ' active' : '');
+  document.getElementById('wish-btn-grid').className = 'wish-view-btn' + (v === 'grid' ? ' active' : '');
+  renderWish();
 }
 
 function addWish() {
   const name = document.getElementById('wish-name-input').value.trim();
   const price = parseInt(document.getElementById('wish-price-input').value);
-  const memo = document.getElementById('wish-memo-input').value.trim();
+  const imgData = document.getElementById('wish-img-data').value;
   if (!name) { alert('항목 이름을 입력해주세요.'); return; }
   if (!price || price <= 0) { alert('금액을 입력해주세요.'); return; }
   const wishes = loadWish();
-  wishes.push({name, price, memo});
+  wishes.push({name, price, img: imgData});
   saveWish(wishes);
   clearWishForm();
   renderWish();
@@ -843,7 +1075,11 @@ function deleteWish(i) {
 function clearWishForm() {
   document.getElementById('wish-name-input').value = '';
   document.getElementById('wish-price-input').value = '';
-  document.getElementById('wish-memo-input').value = '';
+  document.getElementById('wish-img-data').value = '';
+  document.getElementById('wish-img-preview').style.display = 'none';
+  document.getElementById('wish-img-preview').src = '';
+  document.getElementById('wish-img-upload-area').style.display = 'flex';
+  document.getElementById('wish-img-input').value = '';
 }
 
 /* ── 파이차트 / 막대그래프 ── */
@@ -1100,6 +1336,8 @@ function openSheet(id) {
   const favBtn = document.getElementById('btn-fav-add');
   favBtn.textContent = isFav ? '★ 즐겨찾기 등록됨' : '★ 즐겨찾기 추가';
   favBtn.style.color = isFav ? '#59a14f' : '#888';
+  // 날짜 표시
+  document.getElementById('sheet-date-display').textContent = e.date || getToday();
   document.getElementById('sheet-overlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
 }
@@ -1114,6 +1352,8 @@ function startEdit() {
   document.getElementById('input-amount').value = e.amount.toLocaleString('ko-KR');
   document.getElementById('input-category').value = e.category;
   document.getElementById('input-memo').value = e.memo || '';
+  document.getElementById('input-date').value = e.date || getToday();
+  document.getElementById('input-date-row').style.display = 'block';
   document.getElementById('form-title').textContent = '지출 수정';
   document.getElementById('btn-save').textContent = '수정 완료';
   switchTab('today'); window.scrollTo({top:0, behavior:'smooth'});
@@ -1127,7 +1367,9 @@ function confirmDelete() {
 function clearForm() {
   document.getElementById('input-amount').value = '';
   document.getElementById('input-memo').value = '';
-  document.getElementById('input-category').value = '식비';
+  document.getElementById('input-category').value = CATS[0] || '식비';
+  document.getElementById('input-date').value = getToday();
+  document.getElementById('input-date-row').style.display = 'none';
   document.getElementById('form-title').textContent = '지출 추가';
   document.getElementById('btn-save').textContent = '저장';
   editingId = null;
@@ -1152,9 +1394,10 @@ function saveExpense() {
   const category = document.getElementById('input-category').value;
   const memo = document.getElementById('input-memo').value.trim();
   const d = loadData();
+  const dateVal = document.getElementById('input-date').value || getToday();
   if (editingId) {
     const idx = d.expenses.findIndex(e => e.id === editingId);
-    if (idx > -1) { d.expenses[idx].amount = amount; d.expenses[idx].category = category; d.expenses[idx].memo = memo; }
+    if (idx > -1) { d.expenses[idx].amount = amount; d.expenses[idx].category = category; d.expenses[idx].memo = memo; d.expenses[idx].date = dateVal; }
     editingId = null;
   } else {
     const now = new Date();
@@ -1168,15 +1411,18 @@ function saveExpense() {
 
 /* ── 탭 전환 ── */
 function switchTab(t) {
-  ['today','dashboard','wish','export','import'].forEach(n => {
+  ['today','dashboard','wish','data','settings'].forEach(n => {
     document.getElementById('view-' + n).style.display = t === n ? 'block' : 'none';
     document.getElementById('btab-' + n).className = 'bottom-tab' + (t === n ? ' active' : '');
   });
   if (t === 'dashboard') renderDashboard();
   if (t === 'wish') renderWish();
+  if (t === 'settings') renderSettings();
+  const s = loadSettings(); applyTheme(s.theme || 'default');
   window.scrollTo({top:0, behavior:'instant'});
 }
 
+applySettings();
 render();
 </script>
 </body>
