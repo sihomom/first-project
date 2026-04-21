@@ -69,7 +69,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .cat-filter-btn { padding: 5px 11px; border-radius: 20px; font-size: 12px; border: 0.5px solid #e0e0e0; background: #fff; color: #888; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .cat-filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
 .view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; display: flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; }
-.view-toggle-btn .tab-icon { font-size: 14px; line-height: 1; display: inline-flex; align-items: center; height: 1em; overflow: visible; position: relative; top: 0; }
+.view-toggle-btn .tab-icon { font-size: 13px; line-height: 1; display: inline-block; vertical-align: middle; position: relative; top: -1px; }
 .view-toggle-btn.active { background: #fff; color: #1a1a1a; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .pie-wrap { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
 .pie-canvas-wrap { position: relative; width: 200px; height: 200px; }
@@ -265,8 +265,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 
     <div class="view-toggle" style="margin-top:0;">
       <!-- 수정 1: 이모티콘과 텍스트 분리해서 정렬 -->
-      <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')"><span class="tab-icon">🥧</span> 파이차트</button>
-      <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')"><span class="tab-icon">📊</span> 막대그래프</button>
+      <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')">pie chart</button>
+      <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')">bar graph</button>
     </div>
     <div id="dash-chart-view">
       <div class="pie-wrap">
