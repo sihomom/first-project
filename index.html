@@ -368,7 +368,13 @@ function getMonthly() {
   const v = localStorage.getItem(BUDGET_KEY);
   return v ? parseInt(v) : DEFAULT_MONTHLY;
 }
-function getDaily() { return Math.floor(getMonthly() / 30); }
+function getDaily() {
+  const period = getCurrentPeriod();
+  const start = new Date(period.start + 'T00:00:00');
+  const end = new Date(period.end + 'T00:00:00');
+  const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  return Math.floor(period.budget / days);
+}
 function getToday() { return new Date().toISOString().split('T')[0]; }
 function loadData() {
   try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : {carry:0, lastDate:getToday(), expenses:[]}; }
