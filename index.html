@@ -15,7 +15,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .header { text-align: center; padding: 1rem 0 0.5rem; }
 .header h1 { font-size: 18px; font-weight: 500; color: #1a1a1a; }
 .header .date { font-size: 13px; color: #888; margin-top: 4px; }
-.balance-card { background: #fff; border-radius: 16px; padding: 1.5rem; text-align: center; margin: 1rem 0; border: 0.5px solid #e0e0e0; }
+.balance-card { background: #fff; border-radius: 16px; padding: 1.5rem; text-align: center; margin: 1rem 0; border: 0.5px solid #e0e0e0; transition: background 0.3s, border-color 0.3s; }
+.balance-card.over-budget { background: #fff5f5; border-color: #f5c0c0; }
 .balance-label { font-size: 13px; color: #888; margin-bottom: 8px; }
 .balance-amount { font-size: 36px; font-weight: 500; color: #1a1a1a; }
 .balance-amount.negative { color: #d84040; }
@@ -64,6 +65,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .savings-dash-value { font-size: 16px; font-weight: 500; color: #2d7a2d; }
 /* 수정 1: view-toggle 버튼 내 이모티콘 정렬 */
 .view-toggle { display: flex; background: #f0f0ec; border-radius: 10px; padding: 3px; margin-bottom: 1rem; }
+.cat-filter-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+.cat-filter-btn { padding: 5px 11px; border-radius: 20px; font-size: 12px; border: 0.5px solid #e0e0e0; background: #fff; color: #888; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.cat-filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
 .view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; display: flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; }
 .view-toggle-btn .tab-icon { font-size: 14px; line-height: 1; display: inline-flex; align-items: center; height: 1em; overflow: visible; position: relative; top: 0; }
 .view-toggle-btn.active { background: #fff; color: #1a1a1a; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
@@ -80,7 +84,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .cat-dash-item { display: flex; align-items: center; padding: 10px 12px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; margin-bottom: 6px; gap: 10px; }
 .cat-dash-left { flex: 1; }
 .cat-dash-name { font-size: 14px; color: #1a1a1a; margin-bottom: 4px; }
-.cat-dash-bar-wrap { background: #f0f0ec; border-radius: 4px; height: 6px; overflow: hidden; }
+.cat-dash-bar-wrap { background: #f0f0ec; border-radius: 6px; height: 10px; overflow: hidden; }
 .cat-dash-bar { height: 100%; border-radius: 4px; }
 .cat-dash-amount { font-size: 14px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
 .budget-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
@@ -256,7 +260,10 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
         <div class="savings-dash-value" id="dash-savings">0원</div>
       </div>
     </div>
-    <div class="view-toggle" style="margin-top:1rem;">
+    <!-- 카테고리 필터 -->
+    <div class="cat-filter-wrap" id="cat-filter-wrap"></div>
+
+    <div class="view-toggle" style="margin-top:0;">
       <!-- 수정 1: 이모티콘과 텍스트 분리해서 정렬 -->
       <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')"><span class="tab-icon">🥧</span> 파이차트</button>
       <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')"><span class="tab-icon">📊</span> 막대그래프</button>
@@ -369,7 +376,7 @@ const WISH_KEY = 'yongdon_wish';
 const PERIOD_KEY = 'yongdon_temp_period'; // 임시 주기 저장
 const CATS = ['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
 const PIE_COLORS = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
-let editingId = null, selectedId = null, dashView = 'chart';
+let editingId = null, selectedId = null, dashView = 'chart', activeCatFilter = null;
 let dashYear = new Date().getFullYear(), dashMonth = new Date().getMonth() + 1;
 
 /* ── 기본 유틸 ── */
@@ -459,6 +466,26 @@ function getCurrentPeriod() {
     end: ny + '-' + String(nm).padStart(2,'0') + '-24',
     budget: getMonthly(),
     isTemp: false
+  };
+}
+
+/* ── 차트 탭에서 현재 보고 있는 달의 주기 범위/예산 반환 (중복 제거) ── */
+function getDashPeriod() {
+  const today = new Date();
+  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
+  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
+  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
+  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
+  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
+  if (isCurrentMonth) {
+    const p = getCurrentPeriod();
+    return { start: p.start, end: p.end, budget: p.budget, isCurrentMonth: true };
+  }
+  return {
+    start: mStr + '-25',
+    end: nextMStr + '-24',
+    budget: getMonthly(),
+    isCurrentMonth: false
   };
 }
 
@@ -591,6 +618,9 @@ function render() {
   const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
   const be = document.getElementById('balance-display');
   be.textContent = fmtW(bal); be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
+  // 예산 초과 시 카드 배경 변경
+  const balCard = document.querySelector('.balance-card');
+  balCard.classList.toggle('over-budget', bal < 0);
   const sp = [];
   if (d.carry > 0) sp.push('어제 이월 ' + fmt(d.carry));
   else if (d.carry < 0) sp.push('어제 초과 ' + fmt(Math.abs(d.carry)));
@@ -610,75 +640,53 @@ function render() {
 
   const te = d.expenses.filter(e => e.date === t).reverse(), l = document.getElementById('tx-list');
   l.innerHTML = te.length === 0 ? '<div class="empty">오늘 지출 내역이 없어요</div>' :
-    te.map(e => '<div class="tx-item" onclick="openSheet(\'' + e.id + '\')"><div class="tx-left"><span class="tx-cat">' + e.category + '</span><span class="tx-memo">' + (e.memo || '—') + '</span></div><span class="tx-amount">' + fmtW(e.amount) + '</span></div>').join('');
+    te.map(e => '<div class="tx-item" onclick="openSheet(\'' + e.id + '\')"><div class="tx-left"><span class="tx-cat">' + e.category + (e.time ? ' · ' + e.time : '') + '</span><span class="tx-memo">' + (e.memo || '—') + '</span></div><span class="tx-amount">' + fmtW(e.amount) + '</span></div>').join('');
 }
 
 /* ── 차트 탭 렌더 ── */
 function renderDashboard() {
   checkAutoResetPeriod();
   const d = loadData();
-  const period = getCurrentPeriod();
-
-  // 차트 탭 네비게이션은 dashYear/dashMonth 기준 주기 조회
-  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
-  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
-  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
-  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
-  const periodStart = mStr + '-25';
-  const periodEnd = nextMStr + '-24';
+  const dp = getDashPeriod();
 
   document.getElementById('dash-month-label').textContent = dashYear + '년 ' + dashMonth + '월';
 
-  // 현재 보는 달이 오늘 달이면 현재 주기 정보 표시
-  const today = new Date();
-  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
+  const [sy, sm, sd] = dp.start.split('-');
+  const [ey, em, ed] = dp.end.split('-');
+  document.getElementById('dash-budget-label').textContent =
+    '이번 주기 예산 (' + parseInt(sm) + '월 ' + parseInt(sd) + '일 ~ ' + parseInt(em) + '월 ' + parseInt(ed) + '일)';
 
-  const displayBudget = isCurrentMonth ? period.budget : getMonthly();
-  const displayStart = isCurrentMonth ? period.start : periodStart;
-  const displayEnd = isCurrentMonth ? period.end : periodEnd;
-
-  const [sy, sm, sd] = displayStart.split('-');
-  const [ey, em, ed] = displayEnd.split('-');
-  const periodLabel = '(' + parseInt(sm) + '월 ' + parseInt(sd) + '일 ~ ' + parseInt(em) + '월 ' + parseInt(ed) + '일)';
-  document.getElementById('dash-budget-label').textContent = '이번 주기 예산 ' + periodLabel;
-
-  const me = d.expenses.filter(e => e.date >= displayStart && e.date <= displayEnd);
+  const me = d.expenses.filter(e => e.date >= dp.start && e.date <= dp.end);
   const total = me.reduce((a,e) => a + e.amount, 0);
-  document.getElementById('dash-total').textContent = fmt(displayBudget);
-  document.getElementById('budget-input').placeholder = fmt(displayBudget) + ' (변경하려면 입력)';
+  document.getElementById('dash-total').textContent = fmt(dp.budget);
+  document.getElementById('budget-input').placeholder = fmt(dp.budget) + ' (변경하려면 입력)';
 
-  const diff = displayBudget - total;
+  const diff = dp.budget - total;
   document.getElementById('dash-sub').textContent = '지출 ' + fmt(total) + ' · ' + (diff >= 0 ? fmt(diff) + ' 남음' : fmt(Math.abs(diff)) + ' 초과');
 
   const days = new Set(me.map(e => e.date)).size;
   document.getElementById('dash-days').textContent = days + '일';
   document.getElementById('dash-avg').textContent = days > 0 ? fmt(Math.round(total / days)) : '0원';
+  document.getElementById('dash-savings').textContent = fmt(calcSavings());
 
-  const savings = calcSavings();
-  document.getElementById('dash-savings').textContent = fmt(savings);
-
-  // 임시 주기 배지 표시
+  // 임시 주기 배지 표시 (현재 달일 때만)
   const tp = loadTempPeriod();
+  const today = new Date();
   const badge = document.getElementById('temp-period-badge');
   const form = document.getElementById('temp-period-form');
-  if (tp && isCurrentMonth) {
+  if (tp && dp.isCurrentMonth) {
     document.getElementById('temp-period-text').textContent = '임시 주기 적용 중: ~' + tp.endDate;
-    badge.style.display = 'block';
-    form.style.display = 'none';
-  } else if (isCurrentMonth) {
-    badge.style.display = 'none';
-    form.style.display = 'block';
-    // date input 기본값: 이번 달 25일
+    badge.style.display = 'block'; form.style.display = 'none';
+  } else if (dp.isCurrentMonth) {
+    badge.style.display = 'none'; form.style.display = 'block';
     const defEnd = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-25';
     document.getElementById('period-end-input').value = defEnd;
   } else {
-    // 현재 달이 아닌 경우 임시 주기 설정 숨김
-    badge.style.display = 'none';
-    form.style.display = 'none';
+    badge.style.display = 'none'; form.style.display = 'none';
   }
 
-  if (dashView === 'chart') renderPie(me);
-  else renderBar(me);
+  renderCatFilter(me);
+  renderCharts(me);
 }
 
 /* ── 위시리스트 탭 렌더 ── */
@@ -789,16 +797,10 @@ function renderPie(me) {
 }
 
 function renderBar(me) {
-  // 지난 주기 지출 계산
+  // 지난 주기 지출 계산 (getDashPeriod 활용)
   const d = loadData();
-  const today = new Date();
-  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
-  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
-  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
-  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
-  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
-  const displayStart = isCurrentMonth ? getCurrentPeriod().start : mStr + '-25';
-  // 지난 주기 종료일 = 이번 주기 시작일 하루 전
+  const dp = getDashPeriod();
+  const displayStart = dp.start;
   const prevEndDate = new Date(displayStart + 'T00:00:00');
   prevEndDate.setDate(prevEndDate.getDate() - 1);
   const prevStartDate = new Date(prevEndDate);
@@ -823,8 +825,38 @@ function renderBar(me) {
         if (diff > 0) diffHtml = ' <span style="color:#d84040;font-size:12px;">(+' + fmt(diff) + ')</span>';
         else if (diff < 0) diffHtml = ' <span style="color:#3a7bd5;font-size:12px;">(-' + fmt(Math.abs(diff)) + ')</span>';
       }
-      return '<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">' + c.name + '</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:' + Math.round(c.total/maxVal*100) + '%;background:' + c.color + '"></div></div></div><div class="cat-dash-amount" style="text-align:right;">' + fmt(c.total) + diffHtml + '</div></div>';
+      return '<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + c.color + ';margin-right:6px;vertical-align:middle;"></span>' + c.name + '</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:' + Math.round(c.total/maxVal*100) + '%;background:' + c.color + '"></div></div></div><div class="cat-dash-amount" style="text-align:right;">' + fmt(c.total) + diffHtml + '</div></div>';
     }).join('');
+}
+
+/* ── 카테고리 필터 렌더 ── */
+function renderCatFilter(me) {
+  const wrap = document.getElementById('cat-filter-wrap');
+  // 이번 주기에서 실제 지출이 있는 카테고리만 표시
+  const usedCats = CATS.filter(c => me.some(e => e.category === c));
+  if (usedCats.length === 0) { wrap.innerHTML = ''; return; }
+
+  let html = '<button class="cat-filter-btn' + (activeCatFilter === null ? ' active' : '') + '" onclick="setCatFilter(null)">전체</button>';
+  usedCats.forEach(c => {
+    html += '<button class="cat-filter-btn' + (activeCatFilter === c ? ' active' : '') + '" onclick="setCatFilter('' + c + '')">' + c + '</button>';
+  });
+  wrap.innerHTML = html;
+}
+
+function setCatFilter(cat) {
+  activeCatFilter = cat;
+  const dp = getDashPeriod();
+  const d = loadData();
+  const me = d.expenses.filter(e => e.date >= dp.start && e.date <= dp.end);
+  renderCatFilter(me);
+  renderCharts(me);
+}
+
+/* ── 차트 공통 렌더 (필터 적용 포함) ── */
+function renderCharts(me) {
+  const filtered = activeCatFilter ? me.filter(e => e.category === activeCatFilter) : me;
+  if (dashView === 'chart') renderPie(filtered);
+  else renderBar(filtered);
 }
 
 function switchDashView(v) {
@@ -833,25 +865,17 @@ function switchDashView(v) {
   document.getElementById('toggle-bar').className = 'view-toggle-btn' + (v === 'bar' ? ' active' : '');
   document.getElementById('dash-chart-view').style.display = v === 'chart' ? 'block' : 'none';
   document.getElementById('dash-bar-view').style.display = v === 'bar' ? 'block' : 'none';
+  const dp = getDashPeriod();
   const d = loadData();
-  const today = new Date();
-  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
-  const period = getCurrentPeriod();
-  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
-  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
-  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
-  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
-  const displayStart = isCurrentMonth ? period.start : mStr + '-25';
-  const displayEnd = isCurrentMonth ? period.end : nextMStr + '-24';
-  const me = d.expenses.filter(e => e.date >= displayStart && e.date <= displayEnd);
-  if (v === 'chart') renderPie(me);
-  else renderBar(me);
+  const me = d.expenses.filter(e => e.date >= dp.start && e.date <= dp.end);
+  renderCharts(me);
 }
 
 function changeMonth(dir) {
   dashMonth += dir;
   if (dashMonth > 12) { dashMonth = 1; dashYear++; }
   if (dashMonth < 1) { dashMonth = 12; dashYear--; }
+  activeCatFilter = null; // 월 이동 시 필터 리셋
   renderDashboard();
 }
 
@@ -972,7 +996,9 @@ function saveExpense() {
     if (idx > -1) { d.expenses[idx].amount = amount; d.expenses[idx].category = category; d.expenses[idx].memo = memo; }
     editingId = null;
   } else {
-    d.expenses.push({id: Date.now().toString(), date: getToday(), amount, category, memo});
+    const now = new Date();
+    const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    d.expenses.push({id: Date.now().toString(), date: getToday(), time: timeStr, amount, category, memo});
   }
   saveData(d); clearForm(); render();
   // 저장 후 금액 입력창 자동 포커스
