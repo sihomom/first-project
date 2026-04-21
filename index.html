@@ -27,7 +27,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .bottom-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-top: 0.5px solid #e0e0e0; display: flex; z-index: 50; }
 .bottom-tab { flex: 1; padding: 12px 2px 14px; text-align: center; cursor: pointer; font-size: 9px; color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .bottom-tab.active { color: #1a1a1a; }
-.bottom-tab .icon { font-size: 20px; line-height: 1; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+/* 수정 1: 아이콘 높이 고정 + line-height로 이모티콘 수직 정렬 */
+.bottom-tab .icon { font-size: 20px; line-height: 22px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .form-wrap { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
 .form-row { margin-bottom: 12px; }
@@ -61,8 +62,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .savings-dash-card { background: #f0faf0; border-radius: 12px; padding: 1rem; border: 0.5px solid #a8d8a8; }
 .savings-dash-label { font-size: 11px; color: #2d7a2d; margin-bottom: 4px; }
 .savings-dash-value { font-size: 16px; font-weight: 500; color: #2d7a2d; }
+/* 수정 1: view-toggle 버튼 내 이모티콘 정렬 */
 .view-toggle { display: flex; background: #f0f0ec; border-radius: 10px; padding: 3px; margin-bottom: 1rem; }
-.view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; }
+.view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; display: flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; }
+.view-toggle-btn .tab-icon { font-size: 14px; line-height: 1; display: inline-flex; align-items: center; height: 1em; overflow: visible; position: relative; top: 0; }
 .view-toggle-btn.active { background: #fff; color: #1a1a1a; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .pie-wrap { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
 canvas#pie-chart { width: 200px; height: 200px; }
@@ -82,6 +85,18 @@ canvas#pie-chart { width: 200px; height: 200px; }
 .budget-input { flex: 1; font-size: 15px; padding: 8px 10px; border: 0.5px solid #ddd; border-radius: 8px; background: #fafafa; color: #1a1a1a; font-family: inherit; }
 .budget-btn { padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; white-space: nowrap; }
 .budget-btn:active { background: #f5f5f0; }
+
+/* 수정 2: 임시 주기 설정 UI */
+.period-section { margin-top: 14px; border-top: 0.5px solid #f0f0ec; padding-top: 12px; }
+.period-section-title { font-size: 12px; color: #888; margin-bottom: 8px; }
+.period-badge { display: inline-flex; align-items: center; gap: 6px; background: #fff7ed; border: 0.5px solid #fcd9a0; border-radius: 8px; padding: 5px 10px; margin-bottom: 10px; }
+.period-badge-text { font-size: 12px; color: #b45309; }
+.period-badge-reset { font-size: 11px; color: #d97706; cursor: pointer; text-decoration: underline; }
+.period-row { display: flex; align-items: center; gap: 8px; }
+.period-input { flex: 1; font-size: 14px; padding: 7px 10px; border: 0.5px solid #ddd; border-radius: 8px; background: #fafafa; color: #1a1a1a; font-family: inherit; }
+.period-btn { padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; border: 0.5px solid #bbb; background: #fff; color: #1a1a1a; white-space: nowrap; }
+.period-btn:active { background: #f5f5f0; }
+
 /* 위시리스트 */
 .savings-card { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; text-align: center; }
 .savings-label { font-size: 13px; color: #888; margin-bottom: 6px; }
@@ -184,15 +199,38 @@ canvas#pie-chart { width: 200px; height: 200px; }
       <div class="month-label" id="dash-month-label"></div>
       <button onclick="changeMonth(1)">▶</button>
     </div>
+
+    <!-- 이번 주기 예산 카드 -->
     <div class="dash-card">
-      <div class="dash-card-label" id="dash-budget-label">월 예산</div>
+      <div class="dash-card-label" id="dash-budget-label">이번 주기 예산</div>
       <div class="dash-card-value" id="dash-total">0원</div>
       <div class="dash-card-sub" id="dash-sub"></div>
+
+      <!-- 예산 금액 수정 -->
       <div class="budget-row">
         <input class="budget-input" type="number" id="budget-input" placeholder="예산 입력 (원)" />
         <button class="budget-btn" onclick="saveBudget()">저장</button>
       </div>
+
+      <!-- 임시 주기 설정 -->
+      <div class="period-section">
+        <div class="period-section-title">📅 임시 주기 설정</div>
+        <div id="temp-period-badge" style="display:none;">
+          <div class="period-badge">
+            <span class="period-badge-text" id="temp-period-text"></span>
+            <span class="period-badge-reset" onclick="resetTempPeriod()">기본으로 돌아가기</span>
+          </div>
+        </div>
+        <div id="temp-period-form">
+          <div style="font-size:12px;color:#aaa;margin-bottom:8px;">이번 주기 종료일을 바꾸고 싶을 때 입력하세요. 25일이 되면 자동으로 기본값으로 돌아와요.</div>
+          <div class="period-row">
+            <input class="period-input" type="date" id="period-end-input" />
+            <button class="period-btn" onclick="saveTempPeriod()">적용</button>
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="dash-grid">
       <div class="dash-small">
         <div class="dash-small-label">지출 일수</div>
@@ -210,8 +248,9 @@ canvas#pie-chart { width: 200px; height: 200px; }
       </div>
     </div>
     <div class="view-toggle" style="margin-top:1rem;">
-      <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')">🥧 파이차트</button>
-      <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')">📊 막대그래프</button>
+      <!-- 수정 1: 이모티콘과 텍스트 분리해서 정렬 -->
+      <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')"><span class="tab-icon">🥧</span> 파이차트</button>
+      <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')"><span class="tab-icon">📊</span> 막대그래프</button>
     </div>
     <div id="dash-chart-view">
       <div class="pie-wrap">
@@ -314,270 +353,467 @@ canvas#pie-chart { width: 200px; height: 200px; }
 </div>
 
 <script>
-const DEFAULT_MONTHLY=350000;
-const STORAGE_KEY='yongdon_data';
-const BUDGET_KEY='yongdon_budget';
-const WISH_KEY='yongdon_wish';
-const CATS=['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
-const PIE_COLORS=['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
-let editingId=null,selectedId=null,dashView='chart';
-let dashYear=new Date().getFullYear(),dashMonth=new Date().getMonth()+1;
+const DEFAULT_MONTHLY = 350000;
+const STORAGE_KEY = 'yongdon_data';
+const BUDGET_KEY = 'yongdon_budget';
+const WISH_KEY = 'yongdon_wish';
+const PERIOD_KEY = 'yongdon_temp_period'; // 임시 주기 저장
+const CATS = ['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
+const PIE_COLORS = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
+let editingId = null, selectedId = null, dashView = 'chart';
+let dashYear = new Date().getFullYear(), dashMonth = new Date().getMonth() + 1;
 
-function getMonthly(){const v=localStorage.getItem(BUDGET_KEY);return v?parseInt(v):DEFAULT_MONTHLY;}
-function getDaily(){return Math.floor(getMonthly()/30);}
-function getToday(){return new Date().toISOString().split('T')[0];}
-function loadData(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):{carry:0,lastDate:getToday(),expenses:[]};}catch(e){return{carry:0,lastDate:getToday(),expenses:[]};}}
-function saveData(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
-function loadWish(){try{const r=localStorage.getItem(WISH_KEY);return r?JSON.parse(r):[];}catch(e){return[];}}
-function saveWish(w){try{localStorage.setItem(WISH_KEY,JSON.stringify(w));}catch(e){}}
-function checkRollover(d){const t=getToday();if(d.lastDate!==t){const s=d.expenses.filter(e=>e.date===d.lastDate).reduce((a,e)=>a+e.amount,0);d.carry=getDaily()+d.carry-s;d.lastDate=t;saveData(d);}return d;}
-function fmt(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
-function fmtW(n){return'₩'+Math.round(n).toLocaleString('ko-KR');}
+/* ── 기본 유틸 ── */
+function getMonthly() {
+  const v = localStorage.getItem(BUDGET_KEY);
+  return v ? parseInt(v) : DEFAULT_MONTHLY;
+}
+function getDaily() { return Math.floor(getMonthly() / 30); }
+function getToday() { return new Date().toISOString().split('T')[0]; }
+function loadData() {
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : {carry:0, lastDate:getToday(), expenses:[]}; }
+  catch(e) { return {carry:0, lastDate:getToday(), expenses:[]}; }
+}
+function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {} }
+function loadWish() { try { const r = localStorage.getItem(WISH_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; } }
+function saveWish(w) { try { localStorage.setItem(WISH_KEY, JSON.stringify(w)); } catch(e) {} }
+function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
 
-// 현재 주기(25일~다음달 24일) 절약 금액 계산
-function calcSavings(){
-  const d=loadData();
-  const now=new Date();
-  const day=now.getDate();
-  let startYear=now.getFullYear(),startMonth=now.getMonth()+1;
-  if(day<25){startMonth--;if(startMonth<1){startMonth=12;startYear--;}}
-  const nextMonth=startMonth===12?1:startMonth+1;
-  const nextYear=startMonth===12?startYear+1:startYear;
-  const periodStart=startYear+'-'+(startMonth<10?'0':'')+startMonth+'-25';
-  const periodEnd=nextYear+'-'+(nextMonth<10?'0':'')+nextMonth+'-24';
-  const spent=d.expenses.filter(e=>e.date>=periodStart&&e.date<=periodEnd).reduce((a,e)=>a+e.amount,0);
-  const monthly=getMonthly();
-  return Math.max(0,monthly-spent);
+/* ── 임시 주기 관리 ──
+   저장 형태: { endDate: 'YYYY-MM-DD', budget: 350000, setDate: 'YYYY-MM-DD' }
+   매달 25일이 되면 자동 리셋 */
+function loadTempPeriod() {
+  try { const r = localStorage.getItem(PERIOD_KEY); return r ? JSON.parse(r) : null; }
+  catch(e) { return null; }
+}
+function saveTempPeriodData(data) {
+  try { localStorage.setItem(PERIOD_KEY, JSON.stringify(data)); } catch(e) {}
+}
+function clearTempPeriodData() {
+  localStorage.removeItem(PERIOD_KEY);
 }
 
-function saveBudget(){
-  const v=parseInt(document.getElementById('budget-input').value);
-  if(!v||v<=0){alert('올바른 금액을 입력해주세요.');return;}
-  localStorage.setItem(BUDGET_KEY,String(v));
-  document.getElementById('budget-input').value='';
-  alert('월 예산이 '+fmt(v)+'으로 변경됐어요.');
-  render();renderDashboard();
+// 오늘이 25일이면 임시 주기 자동 리셋
+function checkAutoResetPeriod() {
+  const today = new Date();
+  if (today.getDate() === 25) {
+    const tp = loadTempPeriod();
+    if (tp) {
+      clearTempPeriodData();
+      // 예산도 기본값으로 리셋
+      localStorage.removeItem(BUDGET_KEY);
+    }
+  }
 }
 
-function render(){
-  let d=loadData();d=checkRollover(d);
-  const t=getToday(),dt=new Date(),wd=['일','월','화','수','목','금','토'];
-  document.getElementById('today-date').textContent=dt.getFullYear()+'년 '+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+wd[dt.getDay()]+')';
-  const daily=getDaily();
-  const b=daily+d.carry,s=d.expenses.filter(e=>e.date===t).reduce((a,e)=>a+e.amount,0),bal=b-s;
-  const be=document.getElementById('balance-display');
-  be.textContent=fmtW(bal);be.className='balance-amount'+(bal<0?' negative':'');
-  const sp=[];
-  if(d.carry>0)sp.push('어제 이월 '+fmt(d.carry));
-  else if(d.carry<0)sp.push('어제 초과 '+fmt(Math.abs(d.carry)));
-  sp.push('기본 예산 '+fmt(daily));
-  document.getElementById('balance-sub').textContent=sp.join(' · ');
-  document.getElementById('today-spent').textContent=fmtW(s);
-  const te=d.expenses.filter(e=>e.date===t).reverse(),l=document.getElementById('tx-list');
-  l.innerHTML=te.length===0?'<div class="empty">오늘 지출 내역이 없어요</div>':
-    te.map(e=>'<div class="tx-item" onclick="openSheet(\''+e.id+'\')"><div class="tx-left"><span class="tx-cat">'+e.category+'</span><span class="tx-memo">'+(e.memo||'—')+'</span></div><span class="tx-amount">'+fmtW(e.amount)+'</span></div>').join('');
+// 현재 유효한 주기의 start/end 반환
+function getCurrentPeriod() {
+  const tp = loadTempPeriod();
+  const today = new Date();
+  const day = today.getDate();
+
+  // 임시 주기가 설정되어 있고, 아직 유효하면 사용
+  if (tp) {
+    const endDate = new Date(tp.endDate + 'T00:00:00');
+    const todayMid = new Date(getToday() + 'T00:00:00');
+    if (endDate >= todayMid) {
+      // 임시 주기의 시작일: 설정일 기준 직전 25일
+      const setD = new Date(tp.setDate + 'T00:00:00');
+      let sy = setD.getFullYear(), sm = setD.getMonth() + 1;
+      if (setD.getDate() < 25) { sm--; if (sm < 1) { sm = 12; sy--; } }
+      const startDate = sy + '-' + String(sm).padStart(2,'0') + '-25';
+      return { start: startDate, end: tp.endDate, budget: tp.budget, isTemp: true };
+    } else {
+      // 임시 주기가 만료됐으면 자동 클리어
+      clearTempPeriodData();
+      localStorage.removeItem(BUDGET_KEY);
+    }
+  }
+
+  // 기본: 이번 달 25일 ~ 다음달 24일
+  let sy = today.getFullYear(), sm = today.getMonth() + 1;
+  if (day < 25) { sm--; if (sm < 1) { sm = 12; sy--; } }
+  const nm = sm === 12 ? 1 : sm + 1;
+  const ny = sm === 12 ? sy + 1 : sy;
+  return {
+    start: sy + '-' + String(sm).padStart(2,'0') + '-25',
+    end: ny + '-' + String(nm).padStart(2,'0') + '-24',
+    budget: getMonthly(),
+    isTemp: false
+  };
 }
 
-function renderDashboard(){
-  const d=loadData();
-  const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;
-  const nextMonth=dashMonth===12?1:dashMonth+1;
-  const nextYear=dashMonth===12?dashYear+1:dashYear;
-  const nextMStr=nextYear+'-'+(nextMonth<10?'0':'')+nextMonth;
-  const periodLabel='('+dashMonth+'월 25일 ~ '+nextMonth+'월 24일)';
-  document.getElementById('dash-month-label').textContent=dashYear+'년 '+dashMonth+'월';
-  document.getElementById('dash-budget-label').textContent='월 예산 '+periodLabel;
-  const periodStart=mStr+'-25';
-  const periodEnd=nextMStr+'-24';
-  const me=d.expenses.filter(e=>e.date>=periodStart&&e.date<=periodEnd);
-  const monthly=getMonthly();
-  const total=me.reduce((a,e)=>a+e.amount,0);
-  document.getElementById('dash-total').textContent=fmt(monthly);
-  document.getElementById('budget-input').placeholder=fmt(monthly)+' (변경하려면 입력)';
-  const diff=monthly-total;
-  document.getElementById('dash-sub').textContent='지출 '+fmt(total)+' · '+(diff>=0?fmt(diff)+' 남음':fmt(Math.abs(diff))+' 초과');
-  const days=new Set(me.map(e=>e.date)).size;
-  document.getElementById('dash-days').textContent=days+'일';
-  document.getElementById('dash-avg').textContent=days>0?fmt(Math.round(total/days)):'0원';
+function saveTempPeriod() {
+  const endVal = document.getElementById('period-end-input').value;
+  if (!endVal) { alert('종료일을 선택해주세요.'); return; }
+  const endDate = new Date(endVal + 'T00:00:00');
+  const todayMid = new Date(getToday() + 'T00:00:00');
+  if (endDate <= todayMid) { alert('종료일은 오늘 이후여야 해요.'); return; }
+  const budgetVal = parseInt(document.getElementById('budget-input').value);
+  const budget = budgetVal > 0 ? budgetVal : getMonthly();
+  saveTempPeriodData({ endDate: endVal, budget: budget, setDate: getToday() });
+  if (budgetVal > 0) { localStorage.setItem(BUDGET_KEY, String(budget)); document.getElementById('budget-input').value = ''; }
+  alert('임시 주기가 설정됐어요.\n종료일: ' + endVal + '\n예산: ' + fmt(budget));
+  renderDashboard();
+}
 
-  // 절약 금액 (현재 주기 기준)
-  const savings=calcSavings();
-  document.getElementById('dash-savings').textContent=fmt(savings);
+function resetTempPeriod() {
+  if (confirm('임시 주기를 해제하고 기본 설정(매달 25일, 35만원)으로 돌아갈까요?')) {
+    clearTempPeriodData();
+    localStorage.removeItem(BUDGET_KEY);
+    renderDashboard();
+  }
+}
 
-  if(dashView==='chart') renderPie(me);
+/* ── 이월 처리 ── */
+function checkRollover(d) {
+  const t = getToday();
+  if (d.lastDate !== t) {
+    const s = d.expenses.filter(e => e.date === d.lastDate).reduce((a,e) => a + e.amount, 0);
+    d.carry = getDaily() + d.carry - s;
+    d.lastDate = t;
+    saveData(d);
+  }
+  return d;
+}
+
+/* ── 절약 금액 계산 (현재 주기 기준) ── */
+function calcSavings() {
+  const d = loadData();
+  const period = getCurrentPeriod();
+  const spent = d.expenses.filter(e => e.date >= period.start && e.date <= period.end).reduce((a,e) => a + e.amount, 0);
+  return Math.max(0, period.budget - spent);
+}
+
+/* ── 예산 저장 ── */
+function saveBudget() {
+  const v = parseInt(document.getElementById('budget-input').value);
+  if (!v || v <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
+  localStorage.setItem(BUDGET_KEY, String(v));
+  // 임시 주기가 있으면 예산도 업데이트
+  const tp = loadTempPeriod();
+  if (tp) { tp.budget = v; saveTempPeriodData(tp); }
+  document.getElementById('budget-input').value = '';
+  alert('예산이 ' + fmt(v) + '으로 변경됐어요.');
+  render(); renderDashboard();
+}
+
+/* ── 오늘 탭 렌더 ── */
+function render() {
+  checkAutoResetPeriod();
+  let d = loadData(); d = checkRollover(d);
+  const t = getToday(), dt = new Date(), wd = ['일','월','화','수','목','금','토'];
+  document.getElementById('today-date').textContent = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' + wd[dt.getDay()] + ')';
+  const daily = getDaily();
+  const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
+  const be = document.getElementById('balance-display');
+  be.textContent = fmtW(bal); be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
+  const sp = [];
+  if (d.carry > 0) sp.push('어제 이월 ' + fmt(d.carry));
+  else if (d.carry < 0) sp.push('어제 초과 ' + fmt(Math.abs(d.carry)));
+  sp.push('기본 예산 ' + fmt(daily));
+  document.getElementById('balance-sub').textContent = sp.join(' · ');
+  document.getElementById('today-spent').textContent = fmtW(s);
+  const te = d.expenses.filter(e => e.date === t).reverse(), l = document.getElementById('tx-list');
+  l.innerHTML = te.length === 0 ? '<div class="empty">오늘 지출 내역이 없어요</div>' :
+    te.map(e => '<div class="tx-item" onclick="openSheet(\'' + e.id + '\')"><div class="tx-left"><span class="tx-cat">' + e.category + '</span><span class="tx-memo">' + (e.memo || '—') + '</span></div><span class="tx-amount">' + fmtW(e.amount) + '</span></div>').join('');
+}
+
+/* ── 차트 탭 렌더 ── */
+function renderDashboard() {
+  checkAutoResetPeriod();
+  const d = loadData();
+  const period = getCurrentPeriod();
+
+  // 차트 탭 네비게이션은 dashYear/dashMonth 기준 주기 조회
+  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
+  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
+  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
+  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
+  const periodStart = mStr + '-25';
+  const periodEnd = nextMStr + '-24';
+
+  document.getElementById('dash-month-label').textContent = dashYear + '년 ' + dashMonth + '월';
+
+  // 현재 보는 달이 오늘 달이면 현재 주기 정보 표시
+  const today = new Date();
+  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
+
+  const displayBudget = isCurrentMonth ? period.budget : getMonthly();
+  const displayStart = isCurrentMonth ? period.start : periodStart;
+  const displayEnd = isCurrentMonth ? period.end : periodEnd;
+
+  const [sy, sm, sd] = displayStart.split('-');
+  const [ey, em, ed] = displayEnd.split('-');
+  const periodLabel = '(' + parseInt(sm) + '월 ' + parseInt(sd) + '일 ~ ' + parseInt(em) + '월 ' + parseInt(ed) + '일)';
+  document.getElementById('dash-budget-label').textContent = '이번 주기 예산 ' + periodLabel;
+
+  const me = d.expenses.filter(e => e.date >= displayStart && e.date <= displayEnd);
+  const total = me.reduce((a,e) => a + e.amount, 0);
+  document.getElementById('dash-total').textContent = fmt(displayBudget);
+  document.getElementById('budget-input').placeholder = fmt(displayBudget) + ' (변경하려면 입력)';
+
+  const diff = displayBudget - total;
+  document.getElementById('dash-sub').textContent = '지출 ' + fmt(total) + ' · ' + (diff >= 0 ? fmt(diff) + ' 남음' : fmt(Math.abs(diff)) + ' 초과');
+
+  const days = new Set(me.map(e => e.date)).size;
+  document.getElementById('dash-days').textContent = days + '일';
+  document.getElementById('dash-avg').textContent = days > 0 ? fmt(Math.round(total / days)) : '0원';
+
+  const savings = calcSavings();
+  document.getElementById('dash-savings').textContent = fmt(savings);
+
+  // 임시 주기 배지 표시
+  const tp = loadTempPeriod();
+  const badge = document.getElementById('temp-period-badge');
+  const form = document.getElementById('temp-period-form');
+  if (tp && isCurrentMonth) {
+    document.getElementById('temp-period-text').textContent = '임시 주기 적용 중: ~' + tp.endDate;
+    badge.style.display = 'block';
+    form.style.display = 'none';
+  } else {
+    badge.style.display = 'none';
+    form.style.display = 'block';
+    // date input 기본값: 이번 달 25일
+    const defEnd = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-25';
+    document.getElementById('period-end-input').value = defEnd;
+  }
+
+  if (dashView === 'chart') renderPie(me);
   else renderBar(me);
 }
 
-function renderWish(){
-  const savings=calcSavings();
-  document.getElementById('savings-amount').textContent=fmt(savings);
-  document.getElementById('savings-sub').textContent='이번 주기 예산 '+fmt(getMonthly())+' 기준';
-  const wishes=loadWish();
-  const list=document.getElementById('wish-list');
-  if(wishes.length===0){list.innerHTML='<div class="empty">아직 위시리스트가 없어요</div>';return;}
-  list.innerHTML=wishes.map((w,i)=>{
-    const affordable=savings>=w.price;
-    return '<div class="wish-item'+(affordable?' affordable':'')+'">' +
+/* ── 위시리스트 탭 렌더 ── */
+function renderWish() {
+  const period = getCurrentPeriod();
+  const savings = calcSavings();
+  document.getElementById('savings-amount').textContent = fmt(savings);
+  document.getElementById('savings-sub').textContent = '이번 주기 예산 ' + fmt(period.budget) + ' 기준';
+  const wishes = loadWish();
+  const list = document.getElementById('wish-list');
+  if (wishes.length === 0) { list.innerHTML = '<div class="empty">아직 위시리스트가 없어요</div>'; return; }
+  list.innerHTML = wishes.map((w, i) => {
+    const affordable = savings >= w.price;
+    return '<div class="wish-item' + (affordable ? ' affordable' : '') + '">' +
       '<div class="wish-left">' +
-        '<div class="wish-name">'+w.name+'</div>' +
-        (w.memo?'<div class="wish-memo">'+w.memo+'</div>':'')+
-        '<div class="wish-price">'+fmt(w.price)+'</div>' +
+        '<div class="wish-name">' + w.name + '</div>' +
+        (w.memo ? '<div class="wish-memo">' + w.memo + '</div>' : '') +
+        '<div class="wish-price">' + fmt(w.price) + '</div>' +
       '</div>' +
-      (affordable?'<div class="wish-badge">살 수 있어요!</div>':'')+
-      '<div class="wish-delete" onclick="deleteWish('+i+')">×</div>' +
+      (affordable ? '<div class="wish-badge">살 수 있어요!</div>' : '') +
+      '<div class="wish-delete" onclick="deleteWish(' + i + ')">×</div>' +
     '</div>';
   }).join('');
 }
 
-function addWish(){
-  const name=document.getElementById('wish-name-input').value.trim();
-  const price=parseInt(document.getElementById('wish-price-input').value);
-  const memo=document.getElementById('wish-memo-input').value.trim();
-  if(!name){alert('항목 이름을 입력해주세요.');return;}
-  if(!price||price<=0){alert('금액을 입력해주세요.');return;}
-  const wishes=loadWish();
-  wishes.push({name,price,memo});
+function addWish() {
+  const name = document.getElementById('wish-name-input').value.trim();
+  const price = parseInt(document.getElementById('wish-price-input').value);
+  const memo = document.getElementById('wish-memo-input').value.trim();
+  if (!name) { alert('항목 이름을 입력해주세요.'); return; }
+  if (!price || price <= 0) { alert('금액을 입력해주세요.'); return; }
+  const wishes = loadWish();
+  wishes.push({name, price, memo});
   saveWish(wishes);
   clearWishForm();
   renderWish();
 }
 
-function deleteWish(i){
-  if(confirm('이 항목을 삭제할까요?')){
-    const wishes=loadWish();
-    wishes.splice(i,1);
+function deleteWish(i) {
+  if (confirm('이 항목을 삭제할까요?')) {
+    const wishes = loadWish();
+    wishes.splice(i, 1);
     saveWish(wishes);
     renderWish();
   }
 }
 
-function clearWishForm(){
-  document.getElementById('wish-name-input').value='';
-  document.getElementById('wish-price-input').value='';
-  document.getElementById('wish-memo-input').value='';
+function clearWishForm() {
+  document.getElementById('wish-name-input').value = '';
+  document.getElementById('wish-price-input').value = '';
+  document.getElementById('wish-memo-input').value = '';
 }
 
-function renderPie(me){
-  const ct=CATS.map((c,i)=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0),color:PIE_COLORS[i]})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
-  const total=ct.reduce((a,c)=>a+c.total,0);
-  const canvas=document.getElementById('pie-chart');
-  const ctx=canvas.getContext('2d');
-  const cx=100,cy=100,r=85,ir=50;
-  ctx.clearRect(0,0,200,200);
-  if(ct.length===0){
-    ctx.fillStyle='#f0f0ec';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fill();
-    document.getElementById('pie-legend').innerHTML='<div class="empty" style="padding:1rem 0;">지출 내역이 없어요</div>';
+/* ── 파이차트 / 막대그래프 ── */
+function renderPie(me) {
+  const ct = CATS.map((c,i) => ({name:c, total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0), color:PIE_COLORS[i]})).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+  const total = ct.reduce((a,c) => a + c.total, 0);
+  const canvas = document.getElementById('pie-chart');
+  const ctx = canvas.getContext('2d');
+  const cx = 100, cy = 100, r = 85, ir = 50;
+  ctx.clearRect(0, 0, 200, 200);
+  if (ct.length === 0) {
+    ctx.fillStyle = '#f0f0ec'; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2); ctx.fill();
+    document.getElementById('pie-legend').innerHTML = '<div class="empty" style="padding:1rem 0;">지출 내역이 없어요</div>';
     return;
   }
-  let start=-Math.PI/2;
-  ct.forEach(c=>{
-    const angle=(c.total/total)*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+angle);ctx.closePath();
-    ctx.fillStyle=c.color;ctx.fill();start+=angle;
+  let start = -Math.PI / 2;
+  ct.forEach(c => {
+    const angle = (c.total / total) * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+angle); ctx.closePath();
+    ctx.fillStyle = c.color; ctx.fill(); start += angle;
   });
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#1a1a1a';ctx.font='bold 13px -apple-system';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(fmt(total),cx,cy);
-  document.getElementById('pie-legend').innerHTML=ct.map(c=>
-    '<div class="pie-legend-item">'+
-      '<div class="pie-legend-dot" style="background:'+c.color+'"></div>'+
-      '<div class="pie-legend-name">'+c.name+'</div>'+
-      '<div class="pie-legend-amount">'+fmt(c.total)+'</div>'+
-      '<div class="pie-legend-pct">'+Math.round(c.total/total*100)+'%</div>'+
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#1a1a1a'; ctx.font = 'bold 13px -apple-system'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(fmt(total), cx, cy);
+  document.getElementById('pie-legend').innerHTML = ct.map(c =>
+    '<div class="pie-legend-item">' +
+      '<div class="pie-legend-dot" style="background:' + c.color + '"></div>' +
+      '<div class="pie-legend-name">' + c.name + '</div>' +
+      '<div class="pie-legend-amount">' + fmt(c.total) + '</div>' +
+      '<div class="pie-legend-pct">' + Math.round(c.total / total * 100) + '%</div>' +
     '</div>'
   ).join('');
 }
 
-function renderBar(me){
-  const ct=CATS.map((c,i)=>({name:c,total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0),color:PIE_COLORS[i]})).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
-  const maxVal=ct.length>0?ct[0].total:1;
-  document.getElementById('dash-cat-list').innerHTML=ct.length===0?'<div class="empty">지출 내역이 없어요</div>':
-    ct.map(c=>'<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">'+c.name+'</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:'+Math.round(c.total/maxVal*100)+'%;background:'+c.color+'"></div></div></div><div class="cat-dash-amount">'+fmt(c.total)+'</div></div>').join('');
+function renderBar(me) {
+  const ct = CATS.map((c,i) => ({name:c, total:me.filter(e=>e.category===c).reduce((a,e)=>a+e.amount,0), color:PIE_COLORS[i]})).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+  const maxVal = ct.length > 0 ? ct[0].total : 1;
+  document.getElementById('dash-cat-list').innerHTML = ct.length === 0 ? '<div class="empty">지출 내역이 없어요</div>' :
+    ct.map(c => '<div class="cat-dash-item"><div class="cat-dash-left"><div class="cat-dash-name">' + c.name + '</div><div class="cat-dash-bar-wrap"><div class="cat-dash-bar" style="width:' + Math.round(c.total/maxVal*100) + '%;background:' + c.color + '"></div></div></div><div class="cat-dash-amount">' + fmt(c.total) + '</div></div>').join('');
 }
 
-function switchDashView(v){
-  dashView=v;
-  document.getElementById('toggle-chart').className='view-toggle-btn'+(v==='chart'?' active':'');
-  document.getElementById('toggle-bar').className='view-toggle-btn'+(v==='bar'?' active':'');
-  document.getElementById('dash-chart-view').style.display=v==='chart'?'block':'none';
-  document.getElementById('dash-bar-view').style.display=v==='bar'?'block':'none';
-  const d=loadData();
-  const mStr=dashYear+'-'+(dashMonth<10?'0':'')+dashMonth;
-  const nextMonth=dashMonth===12?1:dashMonth+1;
-  const nextYear=dashMonth===12?dashYear+1:dashYear;
-  const nextMStr=nextYear+'-'+(nextMonth<10?'0':'')+nextMonth;
-  const me=d.expenses.filter(e=>e.date>=(mStr+'-25')&&e.date<=(nextMStr+'-24'));
-  if(v==='chart') renderPie(me);
+function switchDashView(v) {
+  dashView = v;
+  document.getElementById('toggle-chart').className = 'view-toggle-btn' + (v === 'chart' ? ' active' : '');
+  document.getElementById('toggle-bar').className = 'view-toggle-btn' + (v === 'bar' ? ' active' : '');
+  document.getElementById('dash-chart-view').style.display = v === 'chart' ? 'block' : 'none';
+  document.getElementById('dash-bar-view').style.display = v === 'bar' ? 'block' : 'none';
+  const d = loadData();
+  const today = new Date();
+  const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
+  const period = getCurrentPeriod();
+  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
+  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
+  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
+  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
+  const displayStart = isCurrentMonth ? period.start : mStr + '-25';
+  const displayEnd = isCurrentMonth ? period.end : nextMStr + '-24';
+  const me = d.expenses.filter(e => e.date >= displayStart && e.date <= displayEnd);
+  if (v === 'chart') renderPie(me);
   else renderBar(me);
 }
 
-function changeMonth(dir){
-  dashMonth+=dir;
-  if(dashMonth>12){dashMonth=1;dashYear++;}
-  if(dashMonth<1){dashMonth=12;dashYear--;}
+function changeMonth(dir) {
+  dashMonth += dir;
+  if (dashMonth > 12) { dashMonth = 1; dashYear++; }
+  if (dashMonth < 1) { dashMonth = 12; dashYear--; }
   renderDashboard();
 }
 
-function exportData(){
-  const d=loadData();
-  const w=loadWish();
-  const json=JSON.stringify({...d,wishlist:w},null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  const date=new Date().toISOString().split('T')[0];
-  a.href=url;a.download='daily-wallet-'+date+'.json';
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
+/* ── 내보내기 / 불러오기 / 초기화 ── */
+function exportData() {
+  const d = loadData();
+  const w = loadWish();
+  const tp = loadTempPeriod();
+  const json = JSON.stringify({...d, wishlist:w, tempPeriod:tp}, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url; a.download = 'daily-wallet-' + date + '.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
   alert('내보내기 완료! 파일 앱에서 확인하세요.');
 }
 
-function importData(event){
-  const file=event.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      const imported=JSON.parse(e.target.result);
-      if(!imported.expenses)throw new Error('올바른 파일이 아니에요.');
-      const current=loadData();
-      const existingIds=new Set(current.expenses.map(e=>e.id));
-      const newExp=imported.expenses.filter(e=>!existingIds.has(e.id));
-      current.expenses=[...current.expenses,...newExp];
+function importData(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.expenses) throw new Error('올바른 파일이 아니에요.');
+      const current = loadData();
+      const existingIds = new Set(current.expenses.map(e => e.id));
+      const newExp = imported.expenses.filter(e => !existingIds.has(e.id));
+      current.expenses = [...current.expenses, ...newExp];
       saveData(current);
-      if(imported.wishlist){saveWish(imported.wishlist);}
+      if (imported.wishlist) { saveWish(imported.wishlist); }
       render();
-      alert(newExp.length+'개 항목을 불러왔어요!');
-    }catch(err){alert('파일을 읽는 중 오류가 발생했어요: '+err.message);}
+      alert(newExp.length + '개 항목을 불러왔어요!');
+    } catch(err) { alert('파일을 읽는 중 오류가 발생했어요: ' + err.message); }
   };
-  reader.readAsText(file);event.target.value='';
+  reader.readAsText(file); event.target.value = '';
 }
 
-function resetData(){
-  if(confirm('정말 모든 데이터를 삭제할까요?\n삭제 전 내보내기를 먼저 해두세요.')){
-    if(confirm('마지막 확인이에요. 정말 삭제할까요?')){
-      localStorage.removeItem(STORAGE_KEY);render();
+function resetData() {
+  if (confirm('정말 모든 데이터를 삭제할까요?\n삭제 전 내보내기를 먼저 해두세요.')) {
+    if (confirm('마지막 확인이에요. 정말 삭제할까요?')) {
+      localStorage.removeItem(STORAGE_KEY); render();
       alert('데이터가 초기화됐어요.');
     }
   }
 }
 
-function openSheet(id){selectedId=id;const d=loadData();const e=d.expenses.find(e=>e.id===id);if(!e)return;document.getElementById('sheet-cat').textContent=e.category;document.getElementById('sheet-amount').textContent=fmt(e.amount);document.getElementById('sheet-memo').textContent=e.memo||'없음';document.getElementById('sheet-overlay').classList.add('show');document.getElementById('sheet').classList.add('show');}
-function closeSheet(){document.getElementById('sheet-overlay').classList.remove('show');document.getElementById('sheet').classList.remove('show');selectedId=null;}
-function startEdit(){const d=loadData();const e=d.expenses.find(e=>e.id===selectedId);if(!e)return;closeSheet();editingId=selectedId;document.getElementById('input-amount').value=e.amount;document.getElementById('input-category').value=e.category;document.getElementById('input-memo').value=e.memo||'';document.getElementById('form-title').textContent='지출 수정';document.getElementById('btn-save').textContent='수정 완료';switchTab('today');window.scrollTo({top:0,behavior:'smooth'});}
-function confirmDelete(){if(confirm('이 내역을 삭제할까요?')){const d=loadData();d.expenses=d.expenses.filter(e=>e.id!==selectedId);saveData(d);closeSheet();render();}}
-function clearForm(){document.getElementById('input-amount').value='';document.getElementById('input-memo').value='';document.getElementById('input-category').value='식비';document.getElementById('form-title').textContent='지출 추가';document.getElementById('btn-save').textContent='저장';editingId=null;}
-function saveExpense(){const amount=parseInt(document.getElementById('input-amount').value);if(!amount||amount<=0){alert('금액을 입력해주세요.');return;}const category=document.getElementById('input-category').value;const memo=document.getElementById('input-memo').value.trim();const d=loadData();if(editingId){const idx=d.expenses.findIndex(e=>e.id===editingId);if(idx>-1){d.expenses[idx].amount=amount;d.expenses[idx].category=category;d.expenses[idx].memo=memo;}editingId=null;}else{d.expenses.push({id:Date.now().toString(),date:getToday(),amount,category,memo});}saveData(d);clearForm();render();}
-
-function switchTab(t){
-  ['today','dashboard','wish','export','import'].forEach(n=>{
-    document.getElementById('view-'+n).style.display=t===n?'block':'none';
-    document.getElementById('btab-'+n).className='bottom-tab'+(t===n?' active':'');
-  });
-  if(t==='dashboard')renderDashboard();
-  if(t==='wish')renderWish();
-  window.scrollTo({top:0,behavior:'instant'});
+/* ── 바텀시트 ── */
+function openSheet(id) {
+  selectedId = id;
+  const d = loadData(); const e = d.expenses.find(e => e.id === id); if (!e) return;
+  document.getElementById('sheet-cat').textContent = e.category;
+  document.getElementById('sheet-amount').textContent = fmt(e.amount);
+  document.getElementById('sheet-memo').textContent = e.memo || '없음';
+  document.getElementById('sheet-overlay').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
 }
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+  selectedId = null;
+}
+function startEdit() {
+  const d = loadData(); const e = d.expenses.find(e => e.id === selectedId); if (!e) return;
+  closeSheet(); editingId = selectedId;
+  document.getElementById('input-amount').value = e.amount;
+  document.getElementById('input-category').value = e.category;
+  document.getElementById('input-memo').value = e.memo || '';
+  document.getElementById('form-title').textContent = '지출 수정';
+  document.getElementById('btn-save').textContent = '수정 완료';
+  switchTab('today'); window.scrollTo({top:0, behavior:'smooth'});
+}
+function confirmDelete() {
+  if (confirm('이 내역을 삭제할까요?')) {
+    const d = loadData(); d.expenses = d.expenses.filter(e => e.id !== selectedId);
+    saveData(d); closeSheet(); render();
+  }
+}
+function clearForm() {
+  document.getElementById('input-amount').value = '';
+  document.getElementById('input-memo').value = '';
+  document.getElementById('input-category').value = '식비';
+  document.getElementById('form-title').textContent = '지출 추가';
+  document.getElementById('btn-save').textContent = '저장';
+  editingId = null;
+}
+function saveExpense() {
+  const amount = parseInt(document.getElementById('input-amount').value);
+  if (!amount || amount <= 0) { alert('금액을 입력해주세요.'); return; }
+  const category = document.getElementById('input-category').value;
+  const memo = document.getElementById('input-memo').value.trim();
+  const d = loadData();
+  if (editingId) {
+    const idx = d.expenses.findIndex(e => e.id === editingId);
+    if (idx > -1) { d.expenses[idx].amount = amount; d.expenses[idx].category = category; d.expenses[idx].memo = memo; }
+    editingId = null;
+  } else {
+    d.expenses.push({id: Date.now().toString(), date: getToday(), amount, category, memo});
+  }
+  saveData(d); clearForm(); render();
+}
+
+/* ── 탭 전환 ── */
+function switchTab(t) {
+  ['today','dashboard','wish','export','import'].forEach(n => {
+    document.getElementById('view-' + n).style.display = t === n ? 'block' : 'none';
+    document.getElementById('btab-' + n).className = 'bottom-tab' + (t === n ? ' active' : '');
+  });
+  if (t === 'dashboard') renderDashboard();
+  if (t === 'wish') renderWish();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
 render();
 </script>
 </body>
