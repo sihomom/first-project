@@ -125,6 +125,18 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .wish-item.dragging { opacity: 0.4; }
 .wish-form { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .wish-form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
+/* 결산 리포트 */
+.report-card { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; }
+.report-card-title { font-size: 13px; font-weight: 500; color: #888; margin-bottom: 10px; }
+.report-sentence { font-size: 14px; color: #1a1a1a; line-height: 1.8; }
+.report-sentence span.highlight { font-weight: 600; color: #1a1a1a; }
+.report-sentence span.good { color: #59a14f; font-weight: 600; }
+.report-sentence span.warn { color: #d84040; font-weight: 600; }
+/* 즐겨찾기 칩 */
+.fav-chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 0; }
+.fav-chip { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 20px; font-size: 12px; border: 0.5px solid #e0e0e0; background: #fafafa; color: #1a1a1a; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.fav-chip:active { background: #f0f0ec; }
+.fav-chip-del { color: #ccc; font-size: 14px; line-height: 1; margin-left: 2px; }
 /* 데이터 탭 */
 .data-card { background: #fff; border-radius: 16px; padding: 1.2rem; border: 0.5px solid #e0e0e0; margin-bottom: 1rem; }
 .data-card-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
@@ -171,6 +183,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
         <div class="stat-value" id="today-dday">D-0</div>
       </div>
     </div>
+    <!-- 즐겨찾기 칩 -->
+    <div class="fav-chip-wrap" id="fav-chip-wrap"></div>
     <div class="form-wrap">
       <div class="form-title" id="form-title">지출 추가</div>
       <div class="form-row">
@@ -211,6 +225,12 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <button onclick="changeMonth(-1)">◀</button>
       <div class="month-label" id="dash-month-label"></div>
       <button onclick="changeMonth(1)">▶</button>
+    </div>
+
+    <!-- 결산 리포트 카드 -->
+    <div class="report-card" id="report-card" style="display:none;">
+      <div class="report-card-title">📋 이번 주기 결산</div>
+      <div class="report-sentence" id="report-sentences"></div>
     </div>
 
     <!-- 이번 주기 예산 카드 -->
@@ -366,6 +386,9 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
     <button class="btn-edit" onclick="startEdit()">수정</button>
     <button class="btn-delete" onclick="confirmDelete()">삭제</button>
   </div>
+  <div style="margin-top:8px;">
+    <button id="btn-fav-add" style="width:100%;padding:10px;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;border:0.5px solid #e0e0e0;background:#fafafa;color:#888;" onclick="toggleFavFromSheet()">★ 즐겨찾기 추가</button>
+  </div>
 </div>
 
 <script>
@@ -374,6 +397,7 @@ const STORAGE_KEY = 'yongdon_data';
 const BUDGET_KEY = 'yongdon_budget';
 const WISH_KEY = 'yongdon_wish';
 const PERIOD_KEY = 'yongdon_temp_period'; // 임시 주기 저장
+const FAV_KEY = 'yongdon_favorites';
 const CATS = ['식비','카페','대중교통','생필품','건강','문화','쇼핑','경조사','저축','주식'];
 const PIE_COLORS = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
 let editingId = null, selectedId = null, dashView = 'chart', activeCatFilter = null;
@@ -399,6 +423,9 @@ function loadData() {
 function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {} }
 function loadWish() { try { const r = localStorage.getItem(WISH_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; } }
 function saveWish(w) { try { localStorage.setItem(WISH_KEY, JSON.stringify(w)); } catch(e) {} }
+function loadFavs() { try { const r = localStorage.getItem(FAV_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; } }
+function saveFavs(f) { try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch(e) {} }
+
 function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
 
@@ -559,6 +586,60 @@ function saveBudget() {
 }
 
 /* ── 오늘 탭 렌더 ── */
+/* ── 즐겨찾기 칩 렌더 ── */
+function renderFavChips() {
+  const favs = loadFavs();
+  const wrap = document.getElementById('fav-chip-wrap');
+  wrap.innerHTML = '';
+  if (favs.length === 0) return;
+  favs.forEach((f, i) => {
+    const chip = document.createElement('button');
+    chip.className = 'fav-chip';
+    chip.innerHTML = '<span>' + f.category + ' ' + fmt(f.amount) + '</span><span class="fav-chip-del">×</span>';
+    // 탭: 금액+카테고리 자동 입력
+    chip.addEventListener('click', (e) => {
+      if (e.target.classList.contains('fav-chip-del')) {
+        deleteFav(i); return;
+      }
+      document.getElementById('input-amount').value = f.amount.toLocaleString('ko-KR');
+      document.getElementById('input-category').value = f.category;
+      if (f.memo) document.getElementById('input-memo').value = f.memo;
+      document.getElementById('input-amount').focus();
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+function deleteFav(i) {
+  const favs = loadFavs();
+  favs.splice(i, 1);
+  saveFavs(favs);
+  renderFavChips();
+}
+
+function toggleFavFromSheet() {
+  const d = loadData();
+  const e = d.expenses.find(e => e.id === selectedId);
+  if (!e) return;
+  const favs = loadFavs();
+  const exists = favs.findIndex(f => f.amount === e.amount && f.category === e.category);
+  if (exists > -1) {
+    if (confirm('즐겨찾기에서 삭제할까요?')) {
+      favs.splice(exists, 1);
+      saveFavs(favs);
+      renderFavChips();
+      document.getElementById('btn-fav-add').textContent = '★ 즐겨찾기 추가';
+      document.getElementById('btn-fav-add').style.color = '#888';
+    }
+  } else {
+    favs.push({ amount: e.amount, category: e.category, memo: e.memo || '' });
+    saveFavs(favs);
+    renderFavChips();
+    document.getElementById('btn-fav-add').textContent = '★ 즐겨찾기 등록됨';
+    document.getElementById('btn-fav-add').style.color = '#59a14f';
+  }
+}
+
 /* ── 위시리스트 드래그 ── */
 let dragSrcIndex = -1;
 let touchSrcIndex = -1;
@@ -611,6 +692,7 @@ function touchDragEnd(e, i) {
 
 function render() {
   checkAutoResetPeriod();
+  renderFavChips();
   let d = loadData(); d = checkRollover(d);
   const t = getToday(), dt = new Date(), wd = ['일','월','화','수','목','금','토'];
   document.getElementById('today-date').textContent = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' + wd[dt.getDay()] + ')';
@@ -687,6 +769,7 @@ function renderDashboard() {
 
   renderCatFilter(me);
   renderCharts(me);
+  renderReport(me, dp);
 }
 
 /* ── 위시리스트 탭 렌더 ── */
@@ -874,6 +957,56 @@ function setCatFilter(cat) {
   renderCharts(me);
 }
 
+/* ── 결산 리포트 생성 ── */
+function renderReport(me, dp) {
+  const card = document.getElementById('report-card');
+  const el = document.getElementById('report-sentences');
+  if (me.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const total = me.reduce((a,e) => a + e.amount, 0);
+  const sentences = [];
+
+  // 가장 많이 쓴 카테고리
+  const catTotals = CATS.map(c => ({ name: c, total: me.filter(e => e.category === c).reduce((a,e) => a + e.amount, 0) }))
+    .filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+  if (catTotals.length > 0) {
+    const top = catTotals[0];
+    const pct = Math.round(top.total / total * 100);
+    sentences.push('이번 주기는 <span class="highlight">' + top.name + '</span>에 가장 많이 썼어요 (' + fmt(top.total) + ', 전체의 ' + pct + '%).');
+  }
+
+  // 예산 대비
+  const diff = dp.budget - total;
+  if (diff >= 0) {
+    sentences.push('<span class="good">' + fmt(diff) + ' 절약</span>했어요! 예산을 잘 지켰어요 🎉');
+  } else {
+    sentences.push('예산보다 <span class="warn">' + fmt(Math.abs(diff)) + ' 초과</span>했어요. 다음 주기엔 조금 더 아껴봐요.');
+  }
+
+  // 지난 주기 대비
+  const d = loadData();
+  const prevEnd = new Date(dp.start + 'T00:00:00');
+  prevEnd.setDate(prevEnd.getDate() - 1);
+  const prevStart = new Date(prevEnd);
+  prevStart.setMonth(prevStart.getMonth() - 1);
+  prevStart.setDate(prevStart.getDate() + 1);
+  const prevExp = d.expenses.filter(e => e.date >= prevStart.toISOString().split('T')[0] && e.date <= prevEnd.toISOString().split('T')[0]);
+  const prevTotal = prevExp.reduce((a,e) => a + e.amount, 0);
+  if (prevTotal > 0) {
+    const change = total - prevTotal;
+    if (change < 0) sentences.push('지난 주기보다 <span class="good">' + fmt(Math.abs(change)) + ' 덜 썼어요.</span>');
+    else if (change > 0) sentences.push('지난 주기보다 <span class="warn">' + fmt(change) + ' 더 썼어요.</span>');
+    else sentences.push('지난 주기와 <span class="highlight">비슷하게</span> 지출했어요.');
+  }
+
+  // 지출 빈도
+  const days = new Set(me.map(e => e.date)).size;
+  if (days > 0) sentences.push('총 <span class="highlight">' + days + '일</span> 동안 지출했고, 하루 평균 <span class="highlight">' + fmt(Math.round(total / days)) + '</span>을 썼어요.');
+
+  el.innerHTML = sentences.map(s => '<div style="margin-bottom:6px;">' + s + '</div>').join('');
+}
+
 /* ── 차트 공통 렌더 (필터 적용 포함) ── */
 function renderCharts(me) {
   const filtered = activeCatFilter ? me.filter(e => e.category === activeCatFilter) : me;
@@ -961,6 +1094,12 @@ function openSheet(id) {
   document.getElementById('sheet-cat').textContent = e.category;
   document.getElementById('sheet-amount').textContent = fmt(e.amount);
   document.getElementById('sheet-memo').textContent = e.memo || '없음';
+  // 즐겨찾기 버튼 상태
+  const favs = loadFavs();
+  const isFav = favs.some(f => f.amount === e.amount && f.category === e.category);
+  const favBtn = document.getElementById('btn-fav-add');
+  favBtn.textContent = isFav ? '★ 즐겨찾기 등록됨' : '★ 즐겨찾기 추가';
+  favBtn.style.color = isFav ? '#59a14f' : '#888';
   document.getElementById('sheet-overlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
 }
