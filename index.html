@@ -10,6 +10,15 @@
 <title>Daily Wallet</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  --accent: #1a1a1a;
+  --accent-light: #f0f0ec;
+  --accent-border: #bbb;
+  --filter-active: #1a1a1a;
+  --savings-card: #f0faf0;
+  --savings-border: #a8d8a8;
+  --savings-text: #2d7a2d;
+}
 body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: #f5f5f0; min-height: 100vh; }
 .app { max-width: 390px; margin: 0 auto; padding: 1rem; padding-bottom: 5rem; }
 .header { text-align: center; padding: 1rem 0 0.5rem; }
@@ -27,7 +36,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .stat-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
 .bottom-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: #fff; border-top: 0.5px solid #e0e0e0; display: flex; z-index: 50; }
 .bottom-tab { flex: 1; padding: 12px 2px 14px; text-align: center; cursor: pointer; font-size: 9px; color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.bottom-tab.active { color: #1a1a1a; }
+.bottom-tab.active { color: var(--accent); }
 /* 수정 1: 아이콘 높이 고정 + line-height로 이모티콘 수직 정렬 */
 .bottom-tab .icon { font-size: 20px; line-height: 22px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .form-wrap { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
@@ -39,7 +48,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .form-btns { display: flex; gap: 8px; }
 .form-btns button { flex: 1; padding: 10px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; }
 .btn-cancel { background: #f0f0ec; border: 0.5px solid #ddd; color: #888; }
-.btn-save { background: #fff; border: 0.5px solid #bbb; color: #1a1a1a; }
+.btn-save { background: #fff; border: 0.5px solid var(--accent-border); color: #1a1a1a; }
 .section-title { font-size: 14px; font-weight: 500; color: #888; margin: 1rem 0 0.5rem; }
 .tx-list { display: flex; flex-direction: column; gap: 6px; }
 .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; cursor: pointer; }
@@ -50,7 +59,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .tx-amount { font-size: 15px; font-weight: 500; color: #1a1a1a; }
 .empty { text-align: center; padding: 2rem; font-size: 14px; color: #bbb; }
 .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.month-nav button { background: none; border: 0.5px solid #e0e0e0; border-radius: 8px; padding: 6px 12px; font-size: 14px; cursor: pointer; color: #1a1a1a; font-family: inherit; }
+.month-nav button { background: none; border: 0.5px solid var(--accent-border); border-radius: 8px; padding: 6px 12px; font-size: 14px; cursor: pointer; color: var(--accent); font-family: inherit; }
 .month-label { font-size: 16px; font-weight: 500; color: #1a1a1a; }
 .dash-card { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; }
 .dash-card-label { font-size: 12px; color: #888; margin-bottom: 6px; }
@@ -60,17 +69,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .dash-small { background: #fff; border-radius: 12px; padding: 1rem; border: 0.5px solid #e0e0e0; }
 .dash-small-label { font-size: 11px; color: #888; margin-bottom: 4px; }
 .dash-small-value { font-size: 16px; font-weight: 500; color: #1a1a1a; }
-.savings-dash-card { background: #f0faf0; border-radius: 12px; padding: 1rem; border: 0.5px solid #a8d8a8; }
-.savings-dash-label { font-size: 11px; color: #2d7a2d; margin-bottom: 4px; }
-.savings-dash-value { font-size: 16px; font-weight: 500; color: #2d7a2d; }
+.savings-dash-card { background: var(--savings-card); border-radius: 12px; padding: 1rem; border: 0.5px solid var(--savings-border); }
+.savings-dash-label { font-size: 11px; color: var(--savings-text); margin-bottom: 4px; }
+.savings-dash-value { font-size: 16px; font-weight: 500; color: var(--savings-text); }
 /* 수정 1: view-toggle 버튼 내 이모티콘 정렬 */
 .view-toggle { display: flex; background: #f0f0ec; border-radius: 10px; padding: 3px; margin-bottom: 1rem; }
 .cat-filter-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
 .cat-filter-btn { padding: 5px 11px; border-radius: 20px; font-size: 12px; border: 0.5px solid #e0e0e0; background: #fff; color: #888; cursor: pointer; font-family: inherit; white-space: nowrap; }
-.cat-filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.cat-filter-btn.active { background: var(--filter-active); color: #fff; border-color: var(--filter-active); }
 .view-toggle-btn { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; color: #888; font-family: inherit; border: none; background: none; display: flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; }
 .view-toggle-btn .tab-icon { font-size: 13px; line-height: 1; display: inline-block; vertical-align: middle; position: relative; top: -1px; }
-.view-toggle-btn.active { background: #fff; color: #1a1a1a; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.view-toggle-btn.active { background: #fff; color: var(--accent); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .pie-wrap { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
 .pie-canvas-wrap { position: relative; width: 200px; height: 200px; }
 canvas#pie-chart { width: 200px; height: 200px; display: block; }
@@ -104,16 +113,16 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .period-btn:active { background: #f5f5f0; }
 
 /* 위시리스트 */
-.savings-card { background: #fff; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid #e0e0e0; text-align: center; }
-.savings-label { font-size: 13px; color: #888; margin-bottom: 6px; }
-.savings-amount { font-size: 28px; font-weight: 500; color: #59a14f; }
+.savings-card { background: var(--savings-card); border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid var(--savings-border); text-align: center; }
+.savings-label { font-size: 13px; color: var(--savings-text); opacity: 0.75; margin-bottom: 6px; }
+.savings-amount { font-size: 28px; font-weight: 500; color: var(--savings-text); }
 .savings-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
 .wish-list { display: flex; flex-direction: column; gap: 8px; }
 .wish-item { display: flex; align-items: center; padding: 12px 14px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; gap: 10px; }
-.wish-item.affordable { background: #f0faf0; border-color: #a8d8a8; }
-.wish-item.affordable .wish-name { color: #2d7a2d; }
-.wish-item.affordable .wish-price { color: #2d7a2d; }
-.wish-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #59a14f; color: #fff; white-space: nowrap; flex-shrink: 0; }
+.wish-item.affordable { background: var(--savings-card); border-color: var(--savings-border); }
+.wish-item.affordable .wish-name { color: var(--savings-text); }
+.wish-item.affordable .wish-price { color: var(--savings-text); }
+.wish-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: var(--savings-text); color: #fff; white-space: nowrap; flex-shrink: 0; }
 .wish-left { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .wish-name { font-size: 14px; color: #1a1a1a; font-weight: 500; }
 .wish-memo { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -121,7 +130,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .wish-delete { font-size: 18px; color: #ddd; cursor: pointer; flex-shrink: 0; line-height: 1; }
 .wish-delete:active { color: #d84040; }
 .wish-drag-handle { font-size: 16px; color: #ccc; cursor: grab; flex-shrink: 0; padding: 0 2px; user-select: none; touch-action: none; }
-.wish-item.drag-over { border: 1.5px dashed #59a14f; }
+.wish-item.drag-over { border: 1.5px dashed var(--savings-text); }
 .wish-item.dragging { opacity: 0.4; }
 .wish-form { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; }
 .wish-form-title { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
@@ -130,7 +139,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .report-card-title { font-size: 13px; font-weight: 500; color: #888; margin-bottom: 10px; }
 .report-sentence { font-size: 14px; color: #1a1a1a; line-height: 1.8; }
 .report-sentence span.highlight { font-weight: 600; color: #1a1a1a; }
-.report-sentence span.good { color: #59a14f; font-weight: 600; }
+.report-sentence span.good { color: var(--savings-text); font-weight: 600; }
 .report-sentence span.warn { color: #d84040; font-weight: 600; }
 /* 즐겨찾기 칩 */
 .fav-chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 0; }
@@ -149,8 +158,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .wish-img-upload:active { background:#f0f0ec; }
 .wish-img-preview { width:100%; height:120px; object-fit:cover; border-radius:10px; display:block; }
 .wish-view-toggle { display:flex; background:#f0f0ec; border-radius:10px; padding:3px; margin-bottom:1rem; }
-.wish-view-btn { flex:1; padding:6px; text-align:center; font-size:12px; border-radius:8px; cursor:pointer; color:#888; font-family:inherit; border:none; background:none; }
-.wish-view-btn.active { background:#fff; color:#1a1a1a; font-weight:500; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.wish-view-btn { flex:1; padding:5px 4px; text-align:center; font-size:11px; border-radius:8px; cursor:pointer; color:#888; font-family:inherit; border:none; background:none; white-space:nowrap; }
+.wish-view-btn.active { background:#fff; color:var(--accent); font-weight:500; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
 .wish-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .wish-grid-item { background:#fff; border:0.5px solid #e0e0e0; border-radius:12px; overflow:hidden; position:relative; cursor:default; }
 .wish-grid-item.affordable { border-color:#a8d8a8; }
@@ -159,7 +168,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .wish-grid-info { padding:8px 10px; }
 .wish-grid-name { font-size:13px; font-weight:500; color:#1a1a1a; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .wish-grid-price { font-size:12px; color:#888; }
-.wish-grid-badge { position:absolute; top:6px; right:6px; font-size:10px; padding:2px 6px; border-radius:8px; background:#59a14f; color:#fff; }
+.wish-grid-badge { position:absolute; top:6px; right:6px; font-size:10px; padding:2px 6px; border-radius:8px; background:var(--savings-text); color:#fff; }
 .wish-grid-del { position:absolute; top:6px; left:6px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,0.35); color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
 /* 설정 탭 */
 .settings-section { margin-bottom:1.2rem; }
@@ -510,7 +519,12 @@ function getDaily() {
   const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
   return Math.floor(period.budget / days);
 }
-function getToday() { return new Date().toISOString().split('T')[0]; }
+function getToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
 function loadData() {
   try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : {carry:0, lastDate:getToday(), expenses:[]}; }
   catch(e) { return {carry:0, lastDate:getToday(), expenses:[]}; }
@@ -535,12 +549,7 @@ function applyTheme(themeKey) {
   root.setProperty('--savings-card', t.savingsCard);
   root.setProperty('--savings-border', t.savingsBorder);
   root.setProperty('--savings-text', t.savingsText);
-  // 동적 클래스 적용
-  document.querySelectorAll('.cat-filter-btn.active').forEach(el => { el.style.background = t.filterActive; el.style.color = '#fff'; el.style.borderColor = t.filterActive; });
-  document.querySelectorAll('.savings-dash-card,.savings-card').forEach(el => { el.style.background = t.savingsCard; el.style.borderColor = t.savingsBorder; });
-  document.querySelectorAll('.savings-dash-label,.savings-dash-value,.savings-amount,.savings-label').forEach(el => { el.style.color = t.savingsText; });
-  document.querySelectorAll('.bottom-tab.active').forEach(el => { el.style.color = t.accent; });
-  document.querySelectorAll('.btn-save').forEach(el => { el.style.borderColor = t.accentBorder; });
+  // CSS 변수로 전체 적용
 }
 
 function applySettings() {
@@ -730,7 +739,9 @@ function checkRollover(d) {
     let cur = new Date(d.lastDate + 'T00:00:00');
     const end = new Date(t + 'T00:00:00');
     while (cur < end) {
-      const dateStr = cur.toISOString().split('T')[0];
+      const dateStr = cur.getFullYear() + '-' +
+        String(cur.getMonth() + 1).padStart(2, '0') + '-' +
+        String(cur.getDate()).padStart(2, '0');
       const s = d.expenses.filter(e => e.date === dateStr).reduce((a,e) => a + e.amount, 0);
       d.carry = getDaily() + d.carry - s;
       cur.setDate(cur.getDate() + 1);
@@ -1227,7 +1238,8 @@ function renderReport(me, dp) {
   const prevStart = new Date(prevEnd);
   prevStart.setMonth(prevStart.getMonth() - 1);
   prevStart.setDate(prevStart.getDate() + 1);
-  const prevExp = d.expenses.filter(e => e.date >= prevStart.toISOString().split('T')[0] && e.date <= prevEnd.toISOString().split('T')[0]);
+  const toLocalStr = d2 => d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+  const prevExp = d.expenses.filter(e => e.date >= toLocalStr(prevStart) && e.date <= toLocalStr(prevEnd));
   const prevTotal = prevExp.reduce((a,e) => a + e.amount, 0);
   if (prevTotal > 0) {
     const change = total - prevTotal;
