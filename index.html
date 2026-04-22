@@ -24,7 +24,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .header { text-align: center; padding: 1rem 0 0.5rem; }
 .header h1 { font-size: 18px; font-weight: 500; color: #1a1a1a; }
 .header .date { font-size: 13px; color: #888; margin-top: 4px; }
-.balance-card { background: #fff; border-radius: 16px; padding: 1.5rem; text-align: center; margin: 1rem 0; border: 0.5px solid #e0e0e0; transition: background 0.3s, border-color 0.3s; }
+.balance-card { background: #fff; border-radius: 16px; padding: 1.5rem 1.5rem 1.2rem; text-align: center; margin: 1rem 0; border: 0.5px solid #e0e0e0; transition: background 0.3s, border-color 0.3s; }
+/* 프로그레스 바 */
+.progress-wrap { margin-top: 1rem; background: #f0f0ec; border-radius: 99px; height: 5px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+.progress-bar.over { background: #d84040; }
+/* 토스트 */
+.toast { position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; font-size: 13px; padding: 10px 20px; border-radius: 99px; z-index: 200; transition: top 0.3s cubic-bezier(.4,0,.2,1); white-space: nowrap; pointer-events: none; }
+.toast.show { top: 18px; }
+/* 숫자 카운트업 애니메이션 */
+.balance-amount { font-size: 36px; font-weight: 500; color: #1a1a1a; transition: color 0.3s; }
 .balance-card.over-budget { background: #fff5f5; border-color: #f5c0c0; }
 .balance-label { font-size: 13px; color: #888; margin-bottom: 8px; }
 .balance-amount { font-size: 36px; font-weight: 500; color: #1a1a1a; }
@@ -143,7 +152,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .report-sentence span.warn { color: #d84040; font-weight: 600; }
 /* 즐겨찾기 칩 */
 .fav-chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 0; }
-.fav-chip { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 20px; font-size: 12px; border: 0.5px solid #e0e0e0; background: #fafafa; color: #1a1a1a; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.fav-chip { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 20px; font-size: 12px; border: 1px solid var(--accent); background: #fafafa; color: var(--accent); cursor: pointer; font-family: inherit; white-space: nowrap; font-weight: 500; }
 .fav-chip:active { background: #f0f0ec; }
 .fav-chip-del { color: #ccc; font-size: 14px; line-height: 1; margin-left: 2px; }
 /* 데이터 탭 */
@@ -217,7 +226,11 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <div class="balance-label">오늘의 예산</div>
       <div class="balance-amount" id="balance-display">₩0</div>
       <div class="balance-sub" id="balance-sub"></div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
     </div>
+    <div class="toast" id="toast"></div>
     <div class="stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="stat">
         <div class="stat-label">오늘의 지출</div>
@@ -616,6 +629,45 @@ function saveCats() {
 function loadFavs() { try { const r = localStorage.getItem(FAV_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; } }
 function saveFavs(f) { try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch(e) {} }
 
+/* ── 토스트 메시지 ── */
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+/* ── 숫자 카운트업 애니메이션 ── */
+let animTimer = null;
+let displayedVal = null;
+function animateBalance(targetVal) {
+  const el = document.getElementById('balance-display');
+  if (displayedVal === null) { displayedVal = targetVal; el.textContent = fmtW(targetVal); return; }
+  if (displayedVal === targetVal) return;
+  if (animTimer) clearInterval(animTimer);
+  const start = displayedVal;
+  const diff = targetVal - start;
+  const duration = 400;
+  const steps = 20;
+  const interval = duration / steps;
+  let step = 0;
+  animTimer = setInterval(() => {
+    step++;
+    const progress = step / steps;
+    const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const cur = Math.round(start + diff * ease);
+    el.textContent = fmtW(cur);
+    if (step >= steps) {
+      clearInterval(animTimer);
+      el.textContent = fmtW(targetVal);
+      displayedVal = targetVal;
+    }
+  }, interval);
+  displayedVal = targetVal;
+}
+
 function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
 
@@ -895,26 +947,38 @@ function render() {
   const daily = getDaily();
   const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
   const be = document.getElementById('balance-display');
-  be.textContent = fmtW(bal); be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
+  be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
+  // 숫자 애니메이션
+  animateBalance(bal);
   // 예산 초과 시 카드 배경 변경
   const balCard = document.querySelector('.balance-card');
   balCard.classList.toggle('over-budget', bal < 0);
-  const sp = [];
-  if (d.carry > 0) sp.push('어제 이월 ' + fmt(d.carry));
-  else if (d.carry < 0) sp.push('어제 초과 ' + fmt(Math.abs(d.carry)));
-  sp.push('기본 예산 ' + fmt(daily));
-  document.getElementById('balance-sub').textContent = sp.join(' · ');
+
+  // 이월/초과 금액 accent 컬러 적용
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#1a1a1a';
+  const subParts = [];
+  if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
+  else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
+  subParts.push('기본 예산 ' + fmt(daily));
+  document.getElementById('balance-sub').innerHTML = subParts.join(' · ');
   document.getElementById('today-spent').textContent = fmtW(s);
 
-  // D-day: 현재 주기 종료일까지 남은 날
+  // 프로그레스 바: 오늘 지출 / 오늘 예산
+  const progressBar = document.getElementById('progress-bar');
+  const totalBudget = daily + Math.max(0, d.carry);
+  const pct = totalBudget > 0 ? Math.min(Math.round(s / totalBudget * 100), 100) : 0;
+  progressBar.style.width = pct + '%';
+  progressBar.className = 'progress-bar' + (bal < 0 ? ' over' : '');
+
+  // D-day: accent 컬러 적용
   const period = getCurrentPeriod();
   const periodEndDate = new Date(period.end + 'T00:00:00');
   const todayDate = new Date(t + 'T00:00:00');
   const ddayDiff = Math.ceil((periodEndDate - todayDate) / (1000 * 60 * 60 * 24));
   const ddayEl = document.getElementById('today-dday');
-  if (ddayDiff > 0) { ddayEl.textContent = 'D-' + ddayDiff; ddayEl.style.color = '#1a1a1a'; }
-  else if (ddayDiff === 0) { ddayEl.textContent = 'D-Day'; ddayEl.style.color = '#d84040'; }
-  else { ddayEl.textContent = 'D+' + Math.abs(ddayDiff); ddayEl.style.color = '#aaa'; }
+  if (ddayDiff > 0) { ddayEl.textContent = 'D-' + ddayDiff; ddayEl.style.color = accentColor; ddayEl.style.fontWeight = '600'; }
+  else if (ddayDiff === 0) { ddayEl.textContent = 'D-Day'; ddayEl.style.color = '#d84040'; ddayEl.style.fontWeight = '600'; }
+  else { ddayEl.textContent = 'D+' + Math.abs(ddayDiff); ddayEl.style.color = '#aaa'; ddayEl.style.fontWeight = '400'; }
 
   const te = d.expenses.filter(e => e.date === t).reverse(), l = document.getElementById('tx-list');
   l.innerHTML = te.length === 0 ? '<div class="empty">오늘 지출 내역이 없어요</div>' :
@@ -1374,6 +1438,7 @@ function confirmDelete() {
   if (confirm('이 내역을 삭제할까요?')) {
     const d = loadData(); d.expenses = d.expenses.filter(e => e.id !== selectedId);
     saveData(d); closeSheet(); render();
+    showToast('삭제됐어요');
   }
 }
 function clearForm() {
@@ -1407,6 +1472,7 @@ function saveExpense() {
   const memo = document.getElementById('input-memo').value.trim();
   const d = loadData();
   const dateVal = document.getElementById('input-date').value || getToday();
+  const editingWas = !!editingId;
   if (editingId) {
     const idx = d.expenses.findIndex(e => e.id === editingId);
     if (idx > -1) { d.expenses[idx].amount = amount; d.expenses[idx].category = category; d.expenses[idx].memo = memo; d.expenses[idx].date = dateVal; }
@@ -1417,6 +1483,8 @@ function saveExpense() {
     d.expenses.push({id: Date.now().toString(), date: getToday(), time: timeStr, amount, category, memo});
   }
   saveData(d); clearForm(); render();
+  // 토스트 메시지
+  showToast(editingWas ? '수정됐어요 ✓' : '저장됐어요 ✓');
   // 저장 후 금액 입력창 자동 포커스
   setTimeout(function() { document.getElementById('input-amount').focus(); }, 80);
 }
