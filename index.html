@@ -304,7 +304,6 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
     </div>
   </div>
 
-
   <!-- 데이터 관리 탭 -->
   <div id="view-data" style="display:none;">
     <div class="data-card">
@@ -509,7 +508,6 @@ function applyTheme(themeKey) {
   root.setProperty('--accent-border', t.accentBorder);
   root.setProperty('--filter-active', t.filterActive);
 
-
   // CSS 변수로 전체 적용
   // 오늘 탭이 보이는 상태면 balance-sub 색상 즉시 반영
   const balSub = document.getElementById('balance-sub');
@@ -645,7 +643,6 @@ function saveCats() {
   showToast('카테고리가 저장됐어요 ✓');
 }
 
-
 /* ── 토스트 메시지 ── */
 let toastTimer = null;
 function showToast(msg) {
@@ -753,16 +750,20 @@ function checkRollover(d) {
   const t = getToday();
   if (d.lastDate !== t) {
     const cycleStart = (loadSettings().cycleDay) || 25;
+    const dailyAmt = getDaily(); // 루프 밖에서 한 번만 계산
     let cur = new Date(d.lastDate + 'T00:00:00');
     const end = new Date(t + 'T00:00:00');
     while (cur < end) {
       const dateStr = cur.getFullYear() + '-' +
         String(cur.getMonth() + 1).padStart(2, '0') + '-' +
         String(cur.getDate()).padStart(2, '0');
-      // 주기 시작일에 carry 리셋
-      if (cur.getDate() === cycleStart) d.carry = 0;
-      const s = d.expenses.filter(e => e.date === dateStr).reduce((a,e) => a + e.amount, 0);
-      d.carry = getDaily() + d.carry - s;
+      // 주기 시작일에 carry 리셋 (periodStart가 설정된 경우 해당 날짜도 리셋)
+      const s2 = loadSettings();
+      const isNewCycle = cur.getDate() === cycleStart && !s2.periodStart;
+      const isPeriodStart = s2.periodStart && dateStr === s2.periodStart;
+      if (isNewCycle || isPeriodStart) d.carry = 0;
+      const spent = d.expenses.filter(e => e.date === dateStr).reduce((a,e) => a + e.amount, 0);
+      d.carry = dailyAmt + d.carry - spent;
       cur.setDate(cur.getDate() + 1);
     }
     d.lastDate = t;
@@ -772,9 +773,6 @@ function checkRollover(d) {
 }
 
 /* ── 오늘 탭 렌더 ── */
-
-
-
 function render() {
   let d = loadData(); d = checkRollover(d);
   const t = getToday(), dt = new Date(), wd = ['일','월','화','수','목','금','토'];
@@ -844,19 +842,10 @@ function renderDashboard() {
   document.getElementById('dash-avg').textContent = days > 0 ? fmt(Math.round(total / days)) : '0원';
   document.getElementById('dash-savings').textContent = fmt(Math.max(0, dp.budget - total));
 
-
-
   renderCatFilter(me);
   renderCharts(me);
   renderReport(me, dp);
 }
-
-/* ── 위시리스트 탭 렌더 ── */
-
-
-
-
-
 
 /* ── 파이차트 / 막대그래프 ── */
 function renderPie(me) {
@@ -1051,7 +1040,8 @@ function changeMonth(dir) {
 /* ── 내보내기 / 불러오기 / 초기화 ── */
 function exportData() {
   const d = loadData();
-  const json = JSON.stringify({...d}, null, 2);
+  const settings = loadSettings();
+  const json = JSON.stringify({...d, settings}, null, 2);
   const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1074,6 +1064,16 @@ function importData(event) {
       const newExp = imported.expenses.filter(ex => !existingIds.has(ex.id));
       current.expenses = [...current.expenses, ...newExp];
       saveData(current);
+      if (imported.settings) {
+        const is = loadSettings();
+        // 예산/주기/카테고리만 선택적 복원 (테마는 현재 유지)
+        if (imported.settings.cats) is.cats = imported.settings.cats;
+        if (imported.settings.cycleDay) is.cycleDay = imported.settings.cycleDay;
+        if (imported.settings.periodStart) is.periodStart = imported.settings.periodStart;
+        saveSettings(is);
+      }
+      if (imported.budget) localStorage.setItem(BUDGET_KEY, String(imported.budget));
+      applySettings();
       render();
       showToast(newExp.length + '개 항목을 불러왔어요!');
     } catch(err) { showToast('파일 읽기 오류: ' + err.message); }
@@ -1086,9 +1086,11 @@ function resetData() {
     if (confirm('마지막 확인이에요. 정말 삭제할까요?')) {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(BUDGET_KEY);
+      localStorage.removeItem(SETTINGS_KEY);
       CATS = [...DEFAULT_CATS];
       displayedVal = null;
       render();
+      renderSettings();
       showToast('데이터가 초기화됐어요');
     }
   }
