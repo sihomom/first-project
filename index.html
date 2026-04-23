@@ -349,19 +349,6 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <div class="settings-card2">
         <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
           <div class="settings-item-left">
-            <div class="settings-item-icon">💰</div>
-            <div>
-              <div class="settings-item-title">월 예산</div>
-              <div class="settings-item-sub">이번 주기에 사용할 예산 금액이에요</div>
-            </div>
-          </div>
-          <div style="display:flex; gap:8px; width:100%;">
-            <input type="text" inputmode="numeric" id="settings-budget-input" class="settings-input" placeholder="350,000" oninput="formatSettingsBudget(this)" />
-            <button class="settings-action-btn" onclick="saveSettingsBudget()">저장</button>
-          </div>
-        </div>
-        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
-          <div class="settings-item-left">
             <div class="settings-item-icon">📅</div>
             <div>
               <div class="settings-item-title">이번 주기 시작일</div>
@@ -376,6 +363,19 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
             날짜를 바꾸면 그날부터 새 주기로 계산돼요. 매달 자동 갱신을 원하면 비워두세요.
           </div>
           <button style="width:100%; padding:8px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit; border:0.5px solid var(--border-mid); background:var(--bg-input); color:var(--text-secondary);" onclick="resetPeriodStart()">기본값으로 초기화 (매달 25일)</button>
+        </div>
+        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
+          <div class="settings-item-left">
+            <div class="settings-item-icon">💰</div>
+            <div>
+              <div class="settings-item-title">월 예산</div>
+              <div class="settings-item-sub">이번 주기에 사용할 예산 금액이에요</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; width:100%;">
+            <input type="text" inputmode="numeric" id="settings-budget-input" class="settings-input" placeholder="350,000" oninput="formatSettingsBudget(this)" />
+            <button class="settings-action-btn" onclick="saveSettingsBudget()">저장</button>
+          </div>
         </div>
       </div>
     </div>
@@ -459,15 +459,12 @@ function getMonthly() {
 }
 function getDaily() {
   const period = getCurrentPeriod();
-  // 오늘부터 종료일까지 남은 일수 기반 (설정 변경 즉시 반영)
-  const today = new Date(getToday() + 'T00:00:00');
+  // 주기 전체 일수로 나눔
+  // carry는 render()에서 별도 처리하므로 여기선 단순 배정액만 반환
+  const start = new Date(period.start + 'T00:00:00');
   const end = new Date(period.end + 'T00:00:00');
-  const remainDays = Math.max(1, Math.round((end - today) / (1000 * 60 * 60 * 24)) + 1);
-  // 오늘까지 이미 쓴 금액
-  const d = loadData();
-  const spentSoFar = d.expenses.filter(e => e.date >= period.start && e.date < getToday()).reduce((a,e) => a + e.amount, 0);
-  const remaining = Math.max(0, period.budget - spentSoFar);
-  return Math.floor(remaining / remainDays);
+  const totalDays = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
+  return Math.floor(period.budget / totalDays);
 }
 function getToday() {
   const d = new Date();
@@ -691,39 +688,40 @@ function animateBalance(targetVal) {
 function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
 
-// 현재 주기 반환: settings.periodStart 기반
-// periodStart가 있으면 그 날짜부터, 없으면 cycleDay 기준으로 자동 계산
+// 현재 주기 반환
+// 종료일은 항상 "시작월 기준 다음 cycleDay의 하루 전"으로 계산
 function getCurrentPeriod() {
   const s = loadSettings();
-  const today = new Date();
-  const todayStr = getToday();
+  const cd = s.cycleDay || 25;         // 매달 주기 시작 요일 (기본 25)
   const budget = getMonthly();
 
-  // periodStart가 직접 설정된 경우
-  if (s.periodStart) {
-    const start = s.periodStart;
-    // 종료일: 시작일로부터 다음 cycleDay - 1일
-    const startD = new Date(start + 'T00:00:00');
-    const endD = new Date(startD);
-    endD.setMonth(endD.getMonth() + 1);
-    endD.setDate(endD.getDate() - 1);
-    const end = endD.getFullYear() + '-' + String(endD.getMonth()+1).padStart(2,'0') + '-' + String(endD.getDate()).padStart(2,'0');
-    return { start, end, budget };
+  // 종료일 계산 헬퍼: 시작일 기준 다음 cycleDay 직전
+  function calcEnd(startStr) {
+    const startD = new Date(startStr + 'T00:00:00');
+    // 다음 cycleDay가 있는 달 찾기
+    let ey = startD.getFullYear(), em = startD.getMonth() + 1;
+    // 시작일이 cycleDay보다 같거나 크면 → 다음달 cycleDay - 1
+    // 시작일이 cycleDay보다 작으면 → 이번달 cycleDay - 1
+    if (startD.getDate() >= cd) { em++; if (em > 12) { em = 1; ey++; } }
+    // 종료일 = 그 달의 cycleDay - 1일
+    const endDay = cd === 1
+      ? new Date(ey, em - 1, 0).getDate()  // 전달 말일
+      : cd - 1;
+    return ey + '-' + String(em).padStart(2,'0') + '-' + String(endDay).padStart(2,'0');
   }
 
-  // 기본: cycleDay일 ~ 다음달 (cycleDay-1)일
-  const cd = s.cycleDay || 25;
-  let sy = today.getFullYear(), sm = today.getMonth() + 1;
+  // periodStart가 직접 설정된 경우 (사용자가 날짜 지정)
+  if (s.periodStart) {
+    return { start: s.periodStart, end: calcEnd(s.periodStart), budget };
+  }
+
+  // 기본: 오늘 기준 cycleDay 계산
+  const today = new Date();
   const day = today.getDate();
+  let sy = today.getFullYear(), sm = today.getMonth() + 1;
   if (day < cd) { sm--; if (sm < 1) { sm = 12; sy--; } }
-  const nm = sm === 12 ? 1 : sm + 1;
-  const ny = sm === 12 ? sy + 1 : sy;
-  const endDay = cd === 1 ? new Date(ny, nm - 1, 0).getDate() : cd - 1;
-  return {
-    start: sy + '-' + String(sm).padStart(2,'0') + '-' + String(cd).padStart(2,'0'),
-    end: ny + '-' + String(nm).padStart(2,'0') + '-' + String(endDay).padStart(2,'0'),
-    budget
-  };
+  const startStr = sy + '-' + String(sm).padStart(2,'0') + '-' + String(cd).padStart(2,'0');
+  return { start: startStr, end: calcEnd(startStr), budget };
 }
 
 /* ── 차트 탭에서 현재 보고 있는 달의 주기 범위/예산 반환 (중복 제거) ── */
@@ -738,14 +736,13 @@ function getDashPeriod() {
     const p = getCurrentPeriod();
     return { start: p.start, end: p.end, budget: p.budget, isCurrentMonth: true };
   }
-  const cs = (loadSettings().cycleStart) || 25;
-  const ce = cs - 1;
+  const cd2 = (loadSettings().cycleDay) || 25;
   const nm2 = dashMonth === 12 ? 1 : dashMonth + 1;
   const ny2 = dashMonth === 12 ? dashYear + 1 : dashYear;
-  const endDay2 = ce === 0 ? new Date(ny2, nm2 - 1, 0).getDate() : ce;
+  const endDay2 = cd2 === 1 ? new Date(ny2, nm2 - 1, 0).getDate() : cd2 - 1;
   return {
-    start: mStr + '-' + String(cs).padStart(2,'0'),
-    end: (ny2 + '-' + String(nm2).padStart(2,'0') + '-' + String(endDay2).padStart(2,'0')),
+    start: dashYear + '-' + String(dashMonth).padStart(2,'0') + '-' + String(cd2).padStart(2,'0'),
+    end: ny2 + '-' + String(nm2).padStart(2,'0') + '-' + String(endDay2).padStart(2,'0'),
     budget: getMonthly(),
     isCurrentMonth: false
   };
