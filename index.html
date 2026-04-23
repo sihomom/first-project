@@ -351,8 +351,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
           <div class="settings-item-left">
             <div class="settings-item-icon">💰</div>
             <div>
-              <div class="settings-item-title">기본 월 예산</div>
-              <div class="settings-item-sub">매달 사용할 기본 예산 금액이에요</div>
+              <div class="settings-item-title">월 예산</div>
+              <div class="settings-item-sub">이번 주기에 사용할 예산 금액이에요</div>
             </div>
           </div>
           <div style="display:flex; gap:8px; width:100%;">
@@ -364,39 +364,18 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
           <div class="settings-item-left">
             <div class="settings-item-icon">📅</div>
             <div>
-              <div class="settings-item-title">주기 시작일</div>
-              <div class="settings-item-sub">매달 몇 일부터 예산이 시작될지 설정해요</div>
+              <div class="settings-item-title">이번 주기 시작일</div>
+              <div class="settings-item-sub" id="period-start-sub">기본: 매달 25일 시작</div>
             </div>
           </div>
           <div style="display:flex; gap:8px; width:100%;">
-            <input type="number" id="cycle-start-input" min="1" max="28" class="settings-input" placeholder="25" />
-            <button class="settings-action-btn" onclick="saveCycleStart()">저장</button>
+            <input type="date" id="period-start-input" class="settings-input" />
+            <button class="settings-action-btn" onclick="savePeriodStart()">저장</button>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-group-label">임시 주기</div>
-      <div class="settings-card2">
-        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
-          <div class="settings-item-left">
-            <div class="settings-item-icon">📌</div>
-            <div>
-              <div class="settings-item-title">이번 주기 종료일 변경</div>
-              <div class="settings-item-sub">주기 시작일이 되면 자동으로 기본값으로 돌아와요</div>
-            </div>
+          <div style="font-size:11px; color:var(--text-muted); width:100%;">
+            날짜를 바꾸면 그날부터 새 주기로 계산돼요. 매달 자동 갱신을 원하면 비워두세요.
           </div>
-          <div id="settings-temp-period-badge" style="display:none; width:100%;">
-            <div style="background:#fff7ed;border:0.5px solid #fcd9a0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:13px;color:#b45309;" id="settings-temp-period-text"></span>
-              <span style="font-size:12px;color:#d97706;cursor:pointer;text-decoration:underline;" onclick="settingsResetTempPeriod()">초기화</span>
-            </div>
-          </div>
-          <div id="settings-temp-period-form" style="display:flex; gap:8px; width:100%;">
-            <input type="date" id="settings-period-end-input" class="settings-input" />
-            <button class="settings-action-btn" onclick="settingsSaveTempPeriod()">적용</button>
-          </div>
+          <button style="width:100%; padding:8px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit; border:0.5px solid var(--border-mid); background:var(--bg-input); color:var(--text-secondary);" onclick="resetPeriodStart()">기본값으로 초기화 (매달 25일)</button>
         </div>
       </div>
     </div>
@@ -458,7 +437,6 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 const DEFAULT_MONTHLY = 350000;
 const STORAGE_KEY = 'yongdon_data';
 const BUDGET_KEY = 'yongdon_budget';
-const PERIOD_KEY = 'yongdon_temp_period'; // 임시 주기 저장
 const SETTINGS_KEY = 'yongdon_settings';
 const THEMES = {
   default: { accent:'#1a1a1a', accentLight:'#f0f0ec', accentBorder:'#bbb', filterActive:'#1a1a1a', filterText:'#fff', name:'기본' },
@@ -481,10 +459,15 @@ function getMonthly() {
 }
 function getDaily() {
   const period = getCurrentPeriod();
-  const start = new Date(period.start + 'T00:00:00');
+  // 오늘부터 종료일까지 남은 일수 기반 (설정 변경 즉시 반영)
+  const today = new Date(getToday() + 'T00:00:00');
   const end = new Date(period.end + 'T00:00:00');
-  const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-  return Math.floor(period.budget / days);
+  const remainDays = Math.max(1, Math.round((end - today) / (1000 * 60 * 60 * 24)) + 1);
+  // 오늘까지 이미 쓴 금액
+  const d = loadData();
+  const spentSoFar = d.expenses.filter(e => e.date >= period.start && e.date < getToday()).reduce((a,e) => a + e.amount, 0);
+  const remaining = Math.max(0, period.budget - spentSoFar);
+  return Math.floor(remaining / remainDays);
 }
 function getToday() {
   const d = new Date();
@@ -512,8 +495,12 @@ function saveData(d) {
 }
 /* ── 설정 유틸 ── */
 function loadSettings() {
-  try { const r = localStorage.getItem(SETTINGS_KEY); return r ? JSON.parse(r) : { theme:'default', cycleStart:25, cats:[...DEFAULT_CATS] }; }
-  catch(e) { return { theme:'default', cycleStart:25, cats:[...DEFAULT_CATS] }; }
+  try {
+    const r = localStorage.getItem(SETTINGS_KEY);
+    const def = { theme:'default', cycleDay:25, periodStart:null, cats:[...DEFAULT_CATS] };
+    return r ? Object.assign({}, def, JSON.parse(r)) : def;
+  }
+  catch(e) { return { theme:'default', cycleDay:25, periodStart:null, cats:[...DEFAULT_CATS] }; }
 }
 function saveSettings(s) { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch(e) {} }
 
@@ -543,7 +530,7 @@ function applyTheme(themeKey) {
 
 function applySettings() {
   const s = loadSettings();
-  CATS = s.cats && s.cats.length ? s.cats : [...DEFAULT_CATS];
+  CATS = (s.cats && s.cats.length) ? s.cats : [...DEFAULT_CATS];
   applyTheme(s.theme || 'default');
   // 카테고리 select 옵션 동적 업데이트
   const sel = document.getElementById('input-category');
@@ -572,25 +559,19 @@ function renderSettings() {
     });
     picker.appendChild(dot);
   });
-  // 주기 시작일
+  // 월 예산 placeholder
   document.getElementById('settings-budget-input').placeholder = fmt(getMonthly()) + ' (현재)';
-  // 임시 주기 상태 표시
-  const tp2 = loadTempPeriod();
-  const badge2 = document.getElementById('settings-temp-period-badge');
-  const form2 = document.getElementById('settings-temp-period-form');
-  if (tp2) {
-    document.getElementById('settings-temp-period-text').textContent = '적용 중: ~' + tp2.endDate;
-    badge2.style.display = 'block'; form2.style.display = 'none';
+  // 이번 주기 시작일
+  const periodInput = document.getElementById('period-start-input');
+  const periodSub = document.getElementById('period-start-sub');
+  if (s.periodStart) {
+    periodInput.value = s.periodStart;
+    periodSub.textContent = '현재: ' + s.periodStart + ' 부터';
   } else {
-    badge2.style.display = 'none'; form2.style.display = 'flex';
-    const today2 = new Date();
-    const cs2 = (loadSettings().cycleStart) || 25;
-    const nm2 = today2.getMonth() + 2 > 12 ? 1 : today2.getMonth() + 2;
-    const ny2 = today2.getMonth() + 2 > 12 ? today2.getFullYear() + 1 : today2.getFullYear();
-    const defEnd = ny2 + '-' + String(nm2).padStart(2,'0') + '-' + String(cs2 - 1 || 24).padStart(2,'0');
-    document.getElementById('settings-period-end-input').value = defEnd;
+    periodInput.value = '';
+    const cd = s.cycleDay || 25;
+    periodSub.textContent = '기본: 매달 ' + cd + '일 시작';
   }
-  document.getElementById('cycle-start-input').value = s.cycleStart || 25;
   // 카테고리 에디터
   const editor = document.getElementById('cat-editor');
   editor.innerHTML = '';
@@ -620,39 +601,30 @@ function saveSettingsBudget() {
   if (!v || v <= 0) { showToast('올바른 금액을 입력해주세요'); return; }
   localStorage.setItem(BUDGET_KEY, String(v));
   document.getElementById('settings-budget-input').value = '';
-  showToast('기본 예산이 ' + fmt(v) + '으로 변경됐어요 ✓');
+  document.getElementById('settings-budget-input').placeholder = fmt(v) + ' (현재)';
+  displayedVal = null; // 애니메이션 리셋
+  showToast('월 예산이 ' + fmt(v) + '으로 변경됐어요 ✓');
   render(); renderDashboard();
 }
 
-function settingsSaveTempPeriod() {
-  const endVal = document.getElementById('settings-period-end-input').value;
-  if (!endVal) { showToast('종료일을 선택해주세요'); return; }
-  const endDate = new Date(endVal + 'T00:00:00');
-  const todayMid = new Date(getToday() + 'T00:00:00');
-  if (endDate <= todayMid) { showToast('종료일은 오늘 이후여야 해요'); return; }
-  const budget = getMonthly();
-  saveTempPeriodData({ startDate: getToday(), endDate: endVal, budget: budget, setDate: getToday() });
-  showToast('임시 주기가 설정됐어요 ✓');
-  renderSettings();
-  render();
+function savePeriodStart() {
+  const val = document.getElementById('period-start-input').value;
+  if (!val) { showToast('날짜를 선택해주세요'); return; }
+  const s = loadSettings();
+  s.periodStart = val;
+  saveSettings(s);
+  displayedVal = null; // 애니메이션 리셋
+  showToast('주기 시작일이 ' + val + '로 변경됐어요 ✓');
+  renderSettings(); render(); renderDashboard();
 }
 
-function settingsResetTempPeriod() {
-  if (confirm('임시 주기를 해제하고 기본 설정으로 돌아갈까요?')) {
-    clearTempPeriodData();
-    localStorage.removeItem(BUDGET_KEY);
-    showToast('기본 주기로 돌아왔어요');
-    renderSettings();
-    render();
-  }
-}
-
-function saveCycleStart() {
-  const v = parseInt(document.getElementById('cycle-start-input').value);
-  if (!v || v < 1 || v > 28) { showToast('1~28 사이의 날짜를 입력해주세요'); return; }
-  const s = loadSettings(); s.cycleStart = v; saveSettings(s);
-  showToast(v + '일로 주기 시작일이 변경됐어요 ✓');
-  render();
+function resetPeriodStart() {
+  const s = loadSettings();
+  s.periodStart = null;
+  saveSettings(s);
+  displayedVal = null;
+  showToast('기본값(매달 25일)으로 초기화됐어요');
+  renderSettings(); render(); renderDashboard();
 }
 
 function saveCats() {
@@ -719,74 +691,38 @@ function animateBalance(targetVal) {
 function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
 
-/* ── 임시 주기 관리 ──
-   저장 형태: { endDate: 'YYYY-MM-DD', budget: 350000, setDate: 'YYYY-MM-DD' }
-   매달 25일이 되면 자동 리셋 */
-function loadTempPeriod() {
-  try { const r = localStorage.getItem(PERIOD_KEY); return r ? JSON.parse(r) : null; }
-  catch(e) { return null; }
-}
-function saveTempPeriodData(data) {
-  try { localStorage.setItem(PERIOD_KEY, JSON.stringify(data)); } catch(e) {}
-}
-function clearTempPeriodData() {
-  localStorage.removeItem(PERIOD_KEY);
-}
-
-// 오늘이 25일이면 임시 주기 자동 리셋
-function checkAutoResetPeriod() {
-  const today = new Date();
-  const cycleStart = (loadSettings().cycleStart) || 25;
-  if (today.getDate() === cycleStart) {
-    const tp = loadTempPeriod();
-    if (tp) {
-      clearTempPeriodData();
-      // 예산도 기본값으로 리셋
-      localStorage.removeItem(BUDGET_KEY);
-    }
-  }
-}
-
-// 현재 유효한 주기의 start/end 반환
+// 현재 주기 반환: settings.periodStart 기반
+// periodStart가 있으면 그 날짜부터, 없으면 cycleDay 기준으로 자동 계산
 function getCurrentPeriod() {
-  const tp = loadTempPeriod();
+  const s = loadSettings();
   const today = new Date();
-  const day = today.getDate();
+  const todayStr = getToday();
+  const budget = getMonthly();
 
-  // 임시 주기가 설정되어 있고, 아직 유효하면 사용
-  if (tp) {
-    const endDate = new Date(tp.endDate + 'T00:00:00');
-    const todayMid = new Date(getToday() + 'T00:00:00');
-    if (endDate >= todayMid) {
-      // 시작일: startDate가 저장돼 있으면 그대로 사용, 없으면 직전 25일 계산(하위호환)
-      let startDate = tp.startDate;
-      if (!startDate) {
-        const setD = new Date(tp.setDate + 'T00:00:00');
-        let sy = setD.getFullYear(), sm = setD.getMonth() + 1;
-        if (setD.getDate() < 25) { sm--; if (sm < 1) { sm = 12; sy--; } }
-        startDate = sy + '-' + String(sm).padStart(2,'0') + '-25';
-      }
-      return { start: startDate, end: tp.endDate, budget: tp.budget, isTemp: true };
-    } else {
-      // 임시 주기가 만료됐으면 자동 클리어
-      clearTempPeriodData();
-      localStorage.removeItem(BUDGET_KEY);
-    }
+  // periodStart가 직접 설정된 경우
+  if (s.periodStart) {
+    const start = s.periodStart;
+    // 종료일: 시작일로부터 다음 cycleDay - 1일
+    const startD = new Date(start + 'T00:00:00');
+    const endD = new Date(startD);
+    endD.setMonth(endD.getMonth() + 1);
+    endD.setDate(endD.getDate() - 1);
+    const end = endD.getFullYear() + '-' + String(endD.getMonth()+1).padStart(2,'0') + '-' + String(endD.getDate()).padStart(2,'0');
+    return { start, end, budget };
   }
 
-  // 기본: cycleStart일 ~ 다음달 (cycleStart-1)일
-  const cycleStart = (loadSettings().cycleStart) || 25;
-  const cycleEnd = cycleStart - 1;
+  // 기본: cycleDay일 ~ 다음달 (cycleDay-1)일
+  const cd = s.cycleDay || 25;
   let sy = today.getFullYear(), sm = today.getMonth() + 1;
-  if (day < cycleStart) { sm--; if (sm < 1) { sm = 12; sy--; } }
+  const day = today.getDate();
+  if (day < cd) { sm--; if (sm < 1) { sm = 12; sy--; } }
   const nm = sm === 12 ? 1 : sm + 1;
   const ny = sm === 12 ? sy + 1 : sy;
-  const endDay = cycleEnd === 0 ? new Date(ny, nm - 1, 0).getDate() : cycleEnd;
+  const endDay = cd === 1 ? new Date(ny, nm - 1, 0).getDate() : cd - 1;
   return {
-    start: sy + '-' + String(sm).padStart(2,'0') + '-' + String(cycleStart).padStart(2,'0'),
+    start: sy + '-' + String(sm).padStart(2,'0') + '-' + String(cd).padStart(2,'0'),
     end: ny + '-' + String(nm).padStart(2,'0') + '-' + String(endDay).padStart(2,'0'),
-    budget: getMonthly(),
-    isTemp: false
+    budget
   };
 }
 
@@ -819,7 +755,7 @@ function getDashPeriod() {
 function checkRollover(d) {
   const t = getToday();
   if (d.lastDate !== t) {
-    const cycleStart = (loadSettings().cycleStart) || 25;
+    const cycleStart = (loadSettings().cycleDay) || 25;
     let cur = new Date(d.lastDate + 'T00:00:00');
     const end = new Date(t + 'T00:00:00');
     while (cur < end) {
@@ -843,7 +779,6 @@ function checkRollover(d) {
 
 
 function render() {
-  checkAutoResetPeriod();
   let d = loadData(); d = checkRollover(d);
   const t = getToday(), dt = new Date(), wd = ['일','월','화','수','목','금','토'];
   document.getElementById('today-date').textContent = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' + wd[dt.getDay()] + ')';
@@ -890,7 +825,6 @@ function render() {
 
 /* ── 차트 탭 렌더 ── */
 function renderDashboard() {
-  checkAutoResetPeriod();
   const d = loadData();
   const dp = getDashPeriod();
 
@@ -1120,8 +1054,7 @@ function changeMonth(dir) {
 /* ── 내보내기 / 불러오기 / 초기화 ── */
 function exportData() {
   const d = loadData();
-  const tp = loadTempPeriod();
-  const json = JSON.stringify({...d, tempPeriod:tp}, null, 2);
+  const json = JSON.stringify({...d}, null, 2);
   const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1144,7 +1077,6 @@ function importData(event) {
       const newExp = imported.expenses.filter(ex => !existingIds.has(ex.id));
       current.expenses = [...current.expenses, ...newExp];
       saveData(current);
-      if (imported.tempPeriod) { try { localStorage.setItem(PERIOD_KEY, JSON.stringify(imported.tempPeriod)); } catch(err2) {} }
       render();
       showToast(newExp.length + '개 항목을 불러왔어요!');
     } catch(err) { showToast('파일 읽기 오류: ' + err.message); }
@@ -1157,7 +1089,6 @@ function resetData() {
     if (confirm('마지막 확인이에요. 정말 삭제할까요?')) {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(BUDGET_KEY);
-      localStorage.removeItem(PERIOD_KEY);
       CATS = [...DEFAULT_CATS];
       displayedVal = null;
       render();
