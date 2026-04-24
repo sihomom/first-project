@@ -169,6 +169,15 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .cat-row { display:flex; align-items:center; gap:10px; }
 .cat-row input { flex:1; font-size:14px; padding:8px 12px; border:0.5px solid var(--border-mid); border-radius:10px; background:var(--bg-input); color:var(--text-primary); font-family:inherit; }
 .cat-color-dot { width:22px; height:22px; border-radius:50%; flex-shrink:0; border:1.5px solid rgba(128,128,128,0.2); }
+/* 수입 */
+.income-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+.income-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-card); border: 0.5px solid var(--accent); border-radius: 10px; }
+.income-item-left { display: flex; flex-direction: column; gap: 2px; }
+.income-item-label { font-size: 12px; color: var(--accent); }
+.income-item-memo { font-size: 14px; color: var(--text-primary); }
+.income-item-amount { font-size: 15px; font-weight: 500; color: var(--accent); }
+.income-item-del { font-size: 18px; color: var(--text-faint); cursor: pointer; }
+.income-item-del:active { color: #d84040; }
 /* 바텀시트 */
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
@@ -246,7 +255,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
         <button class="btn-save" id="btn-save" onclick="saveExpense()">저장</button>
       </div>
     </div>
-    <div class="section-title">오늘의 지출 내역 <span style="font-size:12px;color:#bbb;">탭하면 수정/삭제</span></div>
+    <div class="income-list" id="income-list"></div>
+    <div class="section-title">오늘의 지출 내역 <span style="font-size:12px;color:var(--text-faint);">탭하면 수정/삭제</span></div>
     <div class="tx-list" id="tx-list"></div>
   </div>
 
@@ -380,6 +390,28 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
     </div>
 
     <div class="settings-group">
+      <div class="settings-group-label">수입</div>
+      <div class="settings-card2">
+        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
+          <div class="settings-item-left">
+            <div class="settings-item-icon">💵</div>
+            <div>
+              <div class="settings-item-title">수입 추가</div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+            <input type="text" inputmode="numeric" id="income-amount" class="settings-input" placeholder="금액 (원)" oninput="formatIncomeInput(this)" />
+            <input type="text" id="income-memo" class="settings-input" placeholder="메모 (선택)" />
+            <button class="settings-action-btn" style="width:100%;" onclick="saveIncome()">추가</button>
+          </div>
+        </div>
+        <div class="settings-item" style="flex-direction:column; align-items:stretch; gap:8px;" id="income-settings-list-wrap" style="display:none;">
+          <div id="income-settings-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
       <div class="settings-group-label">카테고리</div>
       <div class="settings-card2">
         <div class="settings-item" style="flex-direction:column; align-items:stretch; gap:12px;">
@@ -437,6 +469,7 @@ const DEFAULT_MONTHLY = 350000;
 const STORAGE_KEY = 'yongdon_data';
 const BUDGET_KEY = 'yongdon_budget';
 const SETTINGS_KEY = 'yongdon_settings';
+const INCOME_KEY = 'yongdon_income';
 const THEMES = {
   default: { accent:'#1a1a1a', accentLight:'#f0f0ec', accentBorder:'#bbb', filterActive:'#1a1a1a', filterText:'#fff', name:'기본' },
   green:   { accent:'#2d7a2d', accentLight:'#f0faf0', accentBorder:'#a8d8a8', filterActive:'#2d7a2d', filterText:'#fff', name:'그린' },
@@ -567,6 +600,7 @@ function renderSettings() {
     const cd = s.cycleDay || 25;
     periodSub.textContent = '기본: 매달 ' + cd + '일 시작';
   }
+  renderSettingsIncomeList();
   // 카테고리 에디터
   const editor = document.getElementById('cat-editor');
   editor.innerHTML = '';
@@ -682,6 +716,136 @@ function animateBalance(targetVal) {
   displayedVal = targetVal;
 }
 
+/* ── 수입 유틸 ── */
+function loadIncomes() {
+  try { const r = localStorage.getItem(INCOME_KEY); return r ? JSON.parse(r) : []; }
+  catch(e) { return []; }
+}
+function saveIncomes(arr) {
+  try { localStorage.setItem(INCOME_KEY, JSON.stringify(arr)); } catch(e) {
+    showToast('⚠️ 저장 공간이 부족해요!');
+  }
+}
+
+// 이번 주기의 수입 합계 반환
+function getPeriodIncome() {
+  const period = getCurrentPeriod();
+  return loadIncomes()
+    .filter(i => i.date >= period.start && i.date <= period.end)
+    .reduce((a, i) => a + i.amount, 0);
+}
+
+// 수입이 반영된 오늘의 일일 예산 계산
+// 공식: (현재 잔액 + 수입 합계) ÷ 오늘부터 주기 종료일까지 남은 일수
+function getDailyWithIncome() {
+  const period = getCurrentPeriod();
+  const d = loadData();
+  const today = getToday();
+
+  // 오늘부터 종료일까지 남은 일수
+  const todayD = new Date(today + 'T00:00:00');
+  const endD = new Date(period.end + 'T00:00:00');
+  const remainDays = Math.max(1, Math.round((endD - todayD) / (1000 * 60 * 60 * 24)) + 1);
+
+  // 이번 주기 총 지출 (오늘 제외 — 오늘치는 carry에서 차감됨)
+  const spentBeforeToday = d.expenses
+    .filter(e => e.date >= period.start && e.date < today)
+    .reduce((a, e) => a + e.amount, 0);
+
+  // 이번 주기 수입 합계
+  const totalIncome = getPeriodIncome();
+
+  // 기본 예산 + 수입 - 오늘 이전 지출 = 오늘 이후 사용 가능 총액
+  // carry는 이미 이전 날 정산된 결과이므로 별도 반영하지 않고
+  // 주기 전체 잔액을 남은 일수로 나눔
+  const available = period.budget + totalIncome - spentBeforeToday;
+  return Math.floor(Math.max(0, available) / remainDays);
+}
+
+
+function formatIncomeInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
+}
+
+function saveIncome() {
+  const raw = document.getElementById('income-amount').value.replace(/[^0-9]/g, '');
+  const amount = parseInt(raw);
+  if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  const memo = document.getElementById('income-memo').value.trim();
+  const incomes = loadIncomes();
+  incomes.push({ id: Date.now().toString(), date: getToday(), amount, memo });
+  saveIncomes(incomes);
+  // 폼 초기화
+  document.getElementById('income-amount').value = '';
+  document.getElementById('income-memo').value = '';
+  renderSettings();
+  showToast('수입이 추가됐어요 ✓');
+  render();
+}
+
+function deleteIncome(id) {
+  if (!confirm('이 수입 내역을 삭제할까요?')) return;
+  const incomes = loadIncomes().filter(i => i.id !== id);
+  saveIncomes(incomes);
+  showToast('삭제됐어요');
+  render();
+}
+
+function renderIncomeList() {
+  // 오늘 탭: 오늘 수입 목록
+  const todayIncomes = loadIncomes().filter(i => i.date === getToday());
+  const list = document.getElementById('income-list');
+  if (list) {
+    list.innerHTML = '';
+    todayIncomes.forEach(i => {
+      const item = document.createElement('div');
+      item.className = 'income-item';
+      item.innerHTML =
+        '<div class="income-item-left">' +
+          '<span class="income-item-label">수입 · ' + i.date + '</span>' +
+          '<span class="income-item-memo">' + (i.memo || '—') + '</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<span class="income-item-amount">+' + fmtW(i.amount) + '</span>' +
+          '<span class="income-item-del">×</span>' +
+        '</div>';
+      item.querySelector('.income-item-del').addEventListener('click', () => deleteIncome(i.id));
+      list.appendChild(item);
+    });
+  }
+}
+
+// 설정 탭: 이번 주기 수입 전체 목록
+function renderSettingsIncomeList() {
+  const period = getCurrentPeriod();
+  const periodIncomes = loadIncomes().filter(i => i.date >= period.start && i.date <= period.end);
+  const wrap = document.getElementById('income-settings-list-wrap');
+  const list = document.getElementById('income-settings-list');
+  if (!wrap || !list) return;
+  if (periodIncomes.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  list.innerHTML = '';
+  periodIncomes.forEach(i => {
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border);';
+    item.innerHTML =
+      '<div>' +
+        '<div style="font-size:13px;color:var(--text-primary);font-weight:500;">+' + fmt(i.amount) + '</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);">' + i.date + (i.memo ? ' · ' + i.memo : '') + '</div>' +
+      '</div>' +
+      '<span style="font-size:18px;color:var(--text-faint);cursor:pointer;" class="income-del-btn">×</span>';
+    item.querySelector('.income-del-btn').addEventListener('click', () => {
+      deleteIncome(i.id);
+      renderSettings();
+    });
+    list.appendChild(item);
+  });
+}
+
 function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
 
@@ -777,7 +941,9 @@ function render() {
   let d = loadData(); d = checkRollover(d);
   const t = getToday(), dt = new Date(), wd = ['일','월','화','수','목','금','토'];
   document.getElementById('today-date').textContent = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' + wd[dt.getDay()] + ')';
-  const daily = getDaily();
+  // 수입이 있으면 수입 반영 일일 예산 사용, 없으면 기본 일일 예산
+  const periodIncome = getPeriodIncome();
+  const daily = periodIncome > 0 ? getDailyWithIncome() : getDaily();
   const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
   const be = document.getElementById('balance-display');
   be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
@@ -793,6 +959,7 @@ function render() {
   if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
   else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
   subParts.push('기본 예산 ' + fmt(daily));
+  if (periodIncome > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입 +' + fmt(periodIncome) + '</span>');
   document.getElementById('balance-sub').innerHTML = subParts.join(' · ');
   document.getElementById('today-spent').textContent = fmtW(s);
 
@@ -813,6 +980,8 @@ function render() {
   else if (ddayDiff === 0) { ddayEl.textContent = 'D-Day'; ddayEl.style.color = '#d84040'; ddayEl.style.fontWeight = '600'; }
   else { ddayEl.textContent = 'D+' + Math.abs(ddayDiff); ddayEl.style.color = '#aaa'; ddayEl.style.fontWeight = '400'; }
 
+  // 수입 목록 렌더
+  renderIncomeList();
   const te = d.expenses.filter(e => e.date === t).reverse(), l = document.getElementById('tx-list');
   l.innerHTML = te.length === 0 ? '<div class="empty">오늘 지출 내역이 없어요</div>' :
     te.map(e => '<div class="tx-item" onclick="openSheet(\'' + e.id + '\')"><div class="tx-left"><span class="tx-cat">' + e.category + (e.time ? ' · ' + e.time : '') + '</span><span class="tx-memo">' + (e.memo || '—') + '</span></div><span class="tx-amount">' + fmtW(e.amount) + '</span></div>').join('');
@@ -1041,7 +1210,8 @@ function changeMonth(dir) {
 function exportData() {
   const d = loadData();
   const settings = loadSettings();
-  const json = JSON.stringify({...d, settings}, null, 2);
+  const incomes = loadIncomes();
+  const json = JSON.stringify({...d, settings, incomes}, null, 2);
   const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1064,6 +1234,12 @@ function importData(event) {
       const newExp = imported.expenses.filter(ex => !existingIds.has(ex.id));
       current.expenses = [...current.expenses, ...newExp];
       saveData(current);
+      if (imported.incomes && Array.isArray(imported.incomes)) {
+        const curIncomes = loadIncomes();
+        const existingIncomeIds = new Set(curIncomes.map(i => i.id));
+        const newIncomes = imported.incomes.filter(i => !existingIncomeIds.has(i.id));
+        saveIncomes([...curIncomes, ...newIncomes]);
+      }
       if (imported.settings) {
         const is = loadSettings();
         // 예산/주기/카테고리만 선택적 복원 (테마는 현재 유지)
@@ -1087,6 +1263,7 @@ function resetData() {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(BUDGET_KEY);
       localStorage.removeItem(SETTINGS_KEY);
+      localStorage.removeItem(INCOME_KEY);
       CATS = [...DEFAULT_CATS];
       displayedVal = null;
       render();
