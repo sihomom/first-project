@@ -552,6 +552,8 @@ function applyTheme(themeKey) {
     if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
     else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
     subParts.push('기본 예산 ' + fmt(daily));
+    const pi = getPeriodIncome();
+    if (pi > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입 +' + fmt(pi) + '</span>');
     balSub.innerHTML = subParts.join(' · ');
   }
 }
@@ -737,9 +739,10 @@ function getPeriodIncome() {
 
 // 수입이 반영된 오늘의 일일 예산 계산
 // 공식: (현재 잔액 + 수입 합계) ÷ 오늘부터 주기 종료일까지 남은 일수
-function getDailyWithIncome() {
+function getDailyWithIncome(d) {
+  // d: 이미 로드된 data 객체 (선택적, 없으면 직접 로드)
+  if (!d) d = loadData();
   const period = getCurrentPeriod();
-  const d = loadData();
   const today = getToday();
 
   // 오늘부터 종료일까지 남은 일수
@@ -790,6 +793,8 @@ function deleteIncome(id) {
   saveIncomes(incomes);
   showToast('삭제됐어요');
   render();
+  // 설정 탭이 열려있으면 수입 목록 갱신
+  if (document.getElementById('view-settings').style.display !== 'none') renderSettings();
 }
 
 function renderIncomeList() {
@@ -889,10 +894,6 @@ function getCurrentPeriod() {
 function getDashPeriod() {
   const today = new Date();
   const isCurrentMonth = (dashYear === today.getFullYear() && dashMonth === (today.getMonth() + 1));
-  const mStr = dashYear + '-' + String(dashMonth).padStart(2,'0');
-  const nm = dashMonth === 12 ? 1 : dashMonth + 1;
-  const ny = dashMonth === 12 ? dashYear + 1 : dashYear;
-  const nextMStr = ny + '-' + String(nm).padStart(2,'0');
   if (isCurrentMonth) {
     const p = getCurrentPeriod();
     return { start: p.start, end: p.end, budget: p.budget, isCurrentMonth: true };
@@ -917,12 +918,12 @@ function checkRollover(d) {
     const dailyAmt = getDaily(); // 루프 밖에서 한 번만 계산
     let cur = new Date(d.lastDate + 'T00:00:00');
     const end = new Date(t + 'T00:00:00');
+    const s2 = loadSettings(); // 루프 밖에서 한 번만 로드
     while (cur < end) {
       const dateStr = cur.getFullYear() + '-' +
         String(cur.getMonth() + 1).padStart(2, '0') + '-' +
         String(cur.getDate()).padStart(2, '0');
-      // 주기 시작일에 carry 리셋 (periodStart가 설정된 경우 해당 날짜도 리셋)
-      const s2 = loadSettings();
+      // 주기 시작일에 carry 리셋
       const isNewCycle = cur.getDate() === cycleStart && !s2.periodStart;
       const isPeriodStart = s2.periodStart && dateStr === s2.periodStart;
       if (isNewCycle || isPeriodStart) d.carry = 0;
@@ -943,7 +944,7 @@ function render() {
   document.getElementById('today-date').textContent = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' + wd[dt.getDay()] + ')';
   // 수입이 있으면 수입 반영 일일 예산 사용, 없으면 기본 일일 예산
   const periodIncome = getPeriodIncome();
-  const daily = periodIncome > 0 ? getDailyWithIncome() : getDaily();
+  const daily = periodIncome > 0 ? getDailyWithIncome(d) : getDaily();
   const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
   const be = document.getElementById('balance-display');
   be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
@@ -1248,7 +1249,8 @@ function importData(event) {
         if (imported.settings.periodStart) is.periodStart = imported.settings.periodStart;
         saveSettings(is);
       }
-      if (imported.budget) localStorage.setItem(BUDGET_KEY, String(imported.budget));
+      // 예산 복원: exported data의 BUDGET_KEY는 별도 저장이므로 직접 복원
+      // (구버전 호환용으로 imported.budget 키 대신 BUDGET_KEY는 settings 외부에 있음)
       applySettings();
       render();
       showToast(newExp.length + '개 항목을 불러왔어요!');
