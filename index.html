@@ -170,6 +170,10 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .cat-row input { flex:1; font-size:14px; padding:8px 12px; border:0.5px solid var(--border-mid); border-radius:10px; background:var(--bg-input); color:var(--text-primary); font-family:inherit; }
 .cat-color-dot { width:22px; height:22px; border-radius:50%; flex-shrink:0; border:1.5px solid rgba(128,128,128,0.2); }
 /* 수입 */
+.income-today-btn { width:100%; padding:10px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; border:1px solid var(--accent); background:transparent; color:var(--accent); margin-bottom:1rem; }
+.income-today-btn:active { opacity:0.75; }
+.income-today-form { background:var(--bg-card); border:0.5px solid var(--accent); border-radius:16px; padding:1rem; margin-bottom:1rem; }
+.income-today-title { font-size:14px; font-weight:500; color:var(--accent); margin-bottom:12px; }
 .income-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
 .income-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-card); border: 0.5px solid var(--accent); border-radius: 10px; }
 .income-item-left { display: flex; flex-direction: column; gap: 2px; }
@@ -253,6 +257,23 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <div class="form-btns">
         <button class="btn-cancel" onclick="clearForm()">초기화</button>
         <button class="btn-save" id="btn-save" onclick="saveExpense()">저장</button>
+      </div>
+    </div>
+    <!-- 오늘 탭 수입 입력 -->
+    <button class="income-today-btn" id="income-today-toggle" onclick="toggleTodayIncomeForm()">＋ 수입 입력</button>
+    <div class="income-today-form" id="income-today-form" style="display:none;">
+      <div class="income-today-title">💵 오늘 수입 추가</div>
+      <div class="form-row">
+        <label>금액 (원)</label>
+        <input type="text" inputmode="numeric" id="income-today-amount" placeholder="0" oninput="formatTodayIncomeInput(this)" />
+      </div>
+      <div class="form-row">
+        <label>메모 (선택)</label>
+        <input type="text" id="income-today-memo" placeholder="어디서 들어온 돈인지 메모해요" />
+      </div>
+      <div class="form-btns">
+        <button class="btn-cancel" onclick="toggleTodayIncomeForm()">취소</button>
+        <button class="btn-save" onclick="saveTodayIncome()">추가</button>
       </div>
     </div>
     <div class="income-list" id="income-list"></div>
@@ -733,7 +754,15 @@ function saveIncomes(arr) {
 function getPeriodIncome() {
   const period = getCurrentPeriod();
   return loadIncomes()
-    .filter(i => i.date >= period.start && i.date <= period.end)
+    .filter(i => i.date >= period.start && i.date <= period.end && i.type !== 'daily')
+    .reduce((a, i) => a + i.amount, 0);
+}
+
+// 오늘 탭에서 입력한 당일 수입 합계 (daily 타입)
+function getTodayDailyIncome() {
+  const today = getToday();
+  return loadIncomes()
+    .filter(i => i.date === today && i.type === 'daily')
     .reduce((a, i) => a + i.amount, 0);
 }
 
@@ -755,7 +784,7 @@ function getDailyWithIncome(d) {
     .filter(e => e.date >= period.start && e.date < today)
     .reduce((a, e) => a + e.amount, 0);
 
-  // 이번 주기 수입 합계
+  // 이번 주기 수입 합계 (period 타입만 — daily는 render에서 별도 처리)
   const totalIncome = getPeriodIncome();
 
   // 기본 예산 + 수입 - 오늘 이전 지출 = 오늘 이후 사용 가능 총액
@@ -771,13 +800,43 @@ function formatIncomeInput(el) {
   el.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
 }
 
+function toggleTodayIncomeForm() {
+  const form = document.getElementById('income-today-form');
+  const btn = document.getElementById('income-today-toggle');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '＋ 수입 입력' : '✕ 수입 입력 닫기';
+  if (!isOpen) setTimeout(() => document.getElementById('income-today-amount').focus(), 50);
+}
+
+function formatTodayIncomeInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
+}
+
+function saveTodayIncome() {
+  const raw = document.getElementById('income-today-amount').value.replace(/[^0-9]/g, '');
+  const amount = parseInt(raw);
+  if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  const memo = document.getElementById('income-today-memo').value.trim();
+  const incomes = loadIncomes();
+  // type: 'daily' — 오늘 예산에 즉시 합산, 잔액은 내일 이월
+  incomes.push({ id: Date.now().toString(), date: getToday(), amount, memo, type: 'daily' });
+  saveIncomes(incomes);
+  document.getElementById('income-today-amount').value = '';
+  document.getElementById('income-today-memo').value = '';
+  toggleTodayIncomeForm();
+  showToast('수입이 추가됐어요 ✓');
+  render();
+}
+
 function saveIncome() {
   const raw = document.getElementById('income-amount').value.replace(/[^0-9]/g, '');
   const amount = parseInt(raw);
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
   const memo = document.getElementById('income-memo').value.trim();
   const incomes = loadIncomes();
-  incomes.push({ id: Date.now().toString(), date: getToday(), amount, memo });
+  incomes.push({ id: Date.now().toString(), date: getToday(), amount, memo, type: 'period' });
   saveIncomes(incomes);
   // 폼 초기화
   document.getElementById('income-amount').value = '';
@@ -808,7 +867,7 @@ function renderIncomeList() {
       item.className = 'income-item';
       item.innerHTML =
         '<div class="income-item-left">' +
-          '<span class="income-item-label">수입 · ' + i.date + '</span>' +
+          '<span class="income-item-label">' + (i.type === 'daily' ? '오늘 수입' : '수입(주기)') + ' · ' + i.date + '</span>' +
           '<span class="income-item-memo">' + (i.memo || '—') + '</span>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
@@ -942,9 +1001,12 @@ function render() {
   let d = loadData(); d = checkRollover(d);
   const t = getToday(), dt = new Date(), wd = ['일','월','화','수','목','금','토'];
   document.getElementById('today-date').textContent = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' + wd[dt.getDay()] + ')';
-  // 수입이 있으면 수입 반영 일일 예산 사용, 없으면 기본 일일 예산
+  // period 수입: 주기 전체 재배분 → getDailyWithIncome
+  // daily 수입: 오늘 예산에 즉시 합산 (잔액은 내일 carry로 이월)
   const periodIncome = getPeriodIncome();
-  const daily = periodIncome > 0 ? getDailyWithIncome(d) : getDaily();
+  const todayDailyIncome = getTodayDailyIncome();
+  const baseDaily = periodIncome > 0 ? getDailyWithIncome(d) : getDaily();
+  const daily = baseDaily + todayDailyIncome; // daily 수입 즉시 반영
   const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
   const be = document.getElementById('balance-display');
   be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
@@ -960,7 +1022,8 @@ function render() {
   if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
   else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
   subParts.push('기본 예산 ' + fmt(daily));
-  if (periodIncome > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입 +' + fmt(periodIncome) + '</span>');
+  if (periodIncome > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입(주기) +' + fmt(periodIncome) + '</span>');
+  if (todayDailyIncome > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입(오늘) +' + fmt(todayDailyIncome) + '</span>');
   document.getElementById('balance-sub').innerHTML = subParts.join(' · ');
   document.getElementById('today-spent').textContent = fmtW(s);
 
