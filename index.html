@@ -570,19 +570,11 @@ function applyTheme(themeKey) {
   root.setProperty('--accent-light', t.accentLight);
   root.setProperty('--accent-border', t.accentBorder);
   root.setProperty('--filter-active', t.filterActive);
-
-  // CSS 변수로 전체 적용
-  // 오늘 탭이 보이는 상태면 balance-sub 색상 즉시 반영
-  const balSub = document.getElementById('balance-sub');
-  if (balSub && balSub.innerHTML.includes('<span')) {
-    const d = loadData();
-    const accentColor = t.accent;
-    const daily = getDaily();
-    const subParts = [];
-    if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
-    else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
-    subParts.push('기본 예산 ' + fmt(daily));
-    balSub.innerHTML = subParts.join(' · ');
+  // 오늘 탭이 열려있으면 render()로 accent 색상 즉시 반영
+  if (typeof render === 'function' &&
+      document.getElementById('view-today') &&
+      document.getElementById('view-today').style.display !== 'none') {
+    render();
   }
 }
 
@@ -984,6 +976,7 @@ function checkRollover(d) {
   if (d.lastDate !== t) {
     const cycleStart = (loadSettings().cycleDay) || 25;
     const dailyAmt = getDaily(); // 루프 밖에서 한 번만 계산
+    const allIncomes = loadIncomes(); // 루프 밖에서 한 번만 로드
     let cur = new Date(d.lastDate + 'T00:00:00');
     const end = new Date(t + 'T00:00:00');
     const s2 = loadSettings(); // 루프 밖에서 한 번만 로드
@@ -996,8 +989,8 @@ function checkRollover(d) {
       const isPeriodStart = s2.periodStart && dateStr === s2.periodStart;
       if (isNewCycle || isPeriodStart) d.carry = 0;
       const spent = d.expenses.filter(e => e.date === dateStr).reduce((a,e) => a + e.amount, 0);
-      // 해당 날짜의 daily 수입도 그날 예산에 포함 (이월에 반영)
-      const dailyIncomeForDate = loadIncomes()
+      // 해당 날짜의 daily 수입도 그날 예산에 포함 (이월에 반영, incomes는 루프 밖에서 로드)
+      const dailyIncomeForDate = allIncomes
         .filter(i => i.date === dateStr && i.type === 'daily')
         .reduce((a,i) => a + i.amount, 0);
       d.carry = dailyAmt + dailyIncomeForDate + d.carry - spent;
@@ -1018,8 +1011,8 @@ function render() {
   // daily 수입: 오늘 예산에 즉시 합산 (잔액은 내일 carry로 이월)
   const periodIncome = getPeriodIncome();
   const todayDailyIncome = getTodayDailyIncome();
-  const baseDaily = periodIncome > 0 ? getDailyWithIncome(d) : getDaily();
-  const daily = baseDaily + todayDailyIncome; // daily 수입 즉시 반영
+  const baseDaily = periodIncome > 0 ? getDailyWithIncome(d, periodIncome) : getDaily();
+  const daily = baseDaily + todayDailyIncome;
   const b = daily + d.carry, s = d.expenses.filter(e => e.date === t).reduce((a,e) => a + e.amount, 0), bal = b - s;
   const be = document.getElementById('balance-display');
   be.className = 'balance-amount' + (bal < 0 ? ' negative' : '');
@@ -1034,7 +1027,7 @@ function render() {
   const subParts = [];
   if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
   else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
-  subParts.push('기본 예산 ' + fmt(daily));
+  subParts.push('오늘 예산 ' + fmt(daily));
   if (periodIncome > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입(주기) +' + fmt(periodIncome) + '</span>');
   if (todayDailyIncome > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입(오늘) +' + fmt(todayDailyIncome) + '</span>');
   document.getElementById('balance-sub').innerHTML = subParts.join(' · ');
@@ -1060,9 +1053,8 @@ function render() {
   cbEl.textContent = fmtW(cycleBalance);
   cbEl.className = 'balance-cycle-amount' + (cycleBalance >= 0 ? ' positive' : ' negative');
 
-  // D-day: accent 컬러 적용
-  const period = getCurrentPeriod();
-  const periodEndDate = new Date(period.end + 'T00:00:00');
+  // D-day: accent 컬러 적용 (curPeriod 재사용)
+  const periodEndDate = new Date(curPeriod.end + 'T00:00:00');
   const todayDate = new Date(t + 'T00:00:00');
   const ddayDiff = Math.ceil((periodEndDate - todayDate) / (1000 * 60 * 60 * 24));
   const ddayEl = document.getElementById('today-dday');
@@ -1140,9 +1132,9 @@ function renderPie(me) {
 }
 
 function renderBar(me) {
-  // 지난 주기 지출 계산 (getDashPeriod 활용)
+  // 지난 주기 지출 계산
+  const dp = getDashPeriod(); // 현재 보는 달 기준
   const d = loadData();
-  const dp = getDashPeriod();
   const displayStart = dp.start;
   const prevEndDate = new Date(displayStart + 'T00:00:00');
   prevEndDate.setDate(prevEndDate.getDate() - 1);
