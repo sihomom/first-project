@@ -65,6 +65,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .balance-amount { font-size: 36px; font-weight: 500; color: #1a1a1a; }
 .balance-amount.negative { color: #d84040; }
 .balance-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.balance-cycle-total { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); }
+.balance-cycle-label { font-size: 12px; color: var(--text-secondary); }
+.balance-cycle-amount { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.balance-cycle-amount.positive { color: var(--accent); }
+.balance-cycle-amount.negative { color: #d84040; }
 .stats { margin-bottom: 1rem; }
 .stat { background: var(--bg-card); border-radius: 10px; padding: 0.75rem 1rem; border: 0.5px solid var(--border); }
 .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
@@ -212,6 +217,10 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <div class="balance-sub" id="balance-sub"></div>
       <div class="progress-wrap">
         <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+      <div class="balance-cycle-total">
+        <span class="balance-cycle-label">주기 누적 잔액</span>
+        <span class="balance-cycle-amount" id="cycle-balance-display">₩0</span>
       </div>
     </div>
     <div class="toast" id="toast"></div>
@@ -573,8 +582,6 @@ function applyTheme(themeKey) {
     if (d.carry > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">이월 ' + fmt(d.carry) + '</span>');
     else if (d.carry < 0) subParts.push('<span style="color:#d84040;font-weight:600;">초과 ' + fmt(Math.abs(d.carry)) + '</span>');
     subParts.push('기본 예산 ' + fmt(daily));
-    const pi = getPeriodIncome();
-    if (pi > 0) subParts.push('<span style="color:' + accentColor + ';font-weight:600;">수입 +' + fmt(pi) + '</span>');
     balSub.innerHTML = subParts.join(' · ');
   }
 }
@@ -768,9 +775,10 @@ function getTodayDailyIncome() {
 
 // 수입이 반영된 오늘의 일일 예산 계산
 // 공식: (현재 잔액 + 수입 합계) ÷ 오늘부터 주기 종료일까지 남은 일수
-function getDailyWithIncome(d) {
-  // d: 이미 로드된 data 객체 (선택적, 없으면 직접 로드)
+function getDailyWithIncome(d, periodIncome) {
+  // d: 이미 로드된 data 객체 (선택적), periodIncome: 이미 계산된 수입 합계 (선택적)
   if (!d) d = loadData();
+  if (periodIncome === undefined) periodIncome = getPeriodIncome();
   const period = getCurrentPeriod();
   const today = getToday();
 
@@ -779,18 +787,13 @@ function getDailyWithIncome(d) {
   const endD = new Date(period.end + 'T00:00:00');
   const remainDays = Math.max(1, Math.round((endD - todayD) / (1000 * 60 * 60 * 24)) + 1);
 
-  // 이번 주기 총 지출 (오늘 제외 — 오늘치는 carry에서 차감됨)
+  // 이번 주기 총 지출 (오늘 이전분만 — 오늘치는 carry에서 이미 반영)
   const spentBeforeToday = d.expenses
     .filter(e => e.date >= period.start && e.date < today)
     .reduce((a, e) => a + e.amount, 0);
 
-  // 이번 주기 수입 합계 (period 타입만 — daily는 render에서 별도 처리)
-  const totalIncome = getPeriodIncome();
-
-  // 기본 예산 + 수입 - 오늘 이전 지출 = 오늘 이후 사용 가능 총액
-  // carry는 이미 이전 날 정산된 결과이므로 별도 반영하지 않고
   // 주기 전체 잔액을 남은 일수로 나눔
-  const available = period.budget + totalIncome - spentBeforeToday;
+  const available = period.budget + periodIncome - spentBeforeToday;
   return Math.floor(Math.max(0, available) / remainDays);
 }
 
@@ -912,6 +915,9 @@ function renderSettingsIncomeList() {
 
 function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmtW(n) { return '₩' + Math.round(n).toLocaleString('ko-KR'); }
+function localDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 
 // 현재 주기 반환
 // 종료일은 항상 "시작월 기준 다음 cycleDay의 하루 전"으로 계산
@@ -929,9 +935,12 @@ function getCurrentPeriod() {
     // 시작일이 cycleDay보다 작으면 → 이번달 cycleDay - 1
     if (startD.getDate() >= cd) { em++; if (em > 12) { em = 1; ey++; } }
     // 종료일 = 그 달의 cycleDay - 1일
-    const endDay = cd === 1
+    let endDay = cd === 1
       ? new Date(ey, em - 1, 0).getDate()  // 전달 말일
       : cd - 1;
+    // 해당 달의 말일을 초과하면 말일로 보정
+    const maxDay = new Date(ey, em, 0).getDate();
+    if (endDay > maxDay) endDay = maxDay;
     return ey + '-' + String(em).padStart(2,'0') + '-' + String(endDay).padStart(2,'0');
   }
 
@@ -987,7 +996,11 @@ function checkRollover(d) {
       const isPeriodStart = s2.periodStart && dateStr === s2.periodStart;
       if (isNewCycle || isPeriodStart) d.carry = 0;
       const spent = d.expenses.filter(e => e.date === dateStr).reduce((a,e) => a + e.amount, 0);
-      d.carry = dailyAmt + d.carry - spent;
+      // 해당 날짜의 daily 수입도 그날 예산에 포함 (이월에 반영)
+      const dailyIncomeForDate = loadIncomes()
+        .filter(i => i.date === dateStr && i.type === 'daily')
+        .reduce((a,i) => a + i.amount, 0);
+      d.carry = dailyAmt + dailyIncomeForDate + d.carry - spent;
       cur.setDate(cur.getDate() + 1);
     }
     d.lastDate = t;
@@ -1033,6 +1046,19 @@ function render() {
   const pct = totalBudget > 0 ? Math.min(Math.round(s / totalBudget * 100), 100) : 0;
   progressBar.style.width = pct + '%';
   progressBar.className = 'progress-bar' + (bal < 0 ? ' over' : '');
+
+  // 주기 누적 잔액: (이번 주기 예산 + 전체 수입) - 이번 주기 지출 합계
+  const curPeriod = getCurrentPeriod();
+  const cycleSpent = d.expenses
+    .filter(e => e.date >= curPeriod.start && e.date <= curPeriod.end)
+    .reduce((a, e) => a + e.amount, 0);
+  const allIncome = loadIncomes()
+    .filter(i => i.date >= curPeriod.start && i.date <= curPeriod.end)
+    .reduce((a, i) => a + i.amount, 0);
+  const cycleBalance = curPeriod.budget + allIncome - cycleSpent;
+  const cbEl = document.getElementById('cycle-balance-display');
+  cbEl.textContent = fmtW(cycleBalance);
+  cbEl.className = 'balance-cycle-amount' + (cycleBalance >= 0 ? ' positive' : ' negative');
 
   // D-day: accent 컬러 적용
   const period = getCurrentPeriod();
@@ -1123,9 +1149,8 @@ function renderBar(me) {
   const prevStartDate = new Date(prevEndDate);
   prevStartDate.setMonth(prevStartDate.getMonth() - 1);
   prevStartDate.setDate(prevStartDate.getDate() + 1);
-  function localStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-  const prevStartStr = localStr(prevStartDate);
-  const prevEndStr = localStr(prevEndDate);
+  const prevStartStr = localDate(prevStartDate);
+  const prevEndStr = localDate(prevEndDate);
   const prevExp = d.expenses.filter(e => e.date >= prevStartStr && e.date <= prevEndStr);
 
   const ct = CATS.map((c,i) => {
@@ -1226,8 +1251,7 @@ function renderReport(me, dp) {
   const prevStart = new Date(prevEnd);
   prevStart.setMonth(prevStart.getMonth() - 1);
   prevStart.setDate(prevStart.getDate() + 1);
-  const toLocalStr = d2 => d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
-  const prevExp = d.expenses.filter(e => e.date >= toLocalStr(prevStart) && e.date <= toLocalStr(prevEnd));
+  const prevExp = d.expenses.filter(e => e.date >= localDate(prevStart) && e.date <= localDate(prevEnd));
   const prevTotal = prevExp.reduce((a,e) => a + e.amount, 0);
   if (prevTotal > 0) {
     const change = total - prevTotal;
@@ -1356,8 +1380,15 @@ function closeSheet() {
   selectedId = null;
 }
 function startEdit() {
-  const d = loadData(); const e = d.expenses.find(e => e.id === selectedId); if (!e) return;
-  closeSheet(); editingId = selectedId;
+  const d = loadData(); const e = d.expenses.find(ex => ex.id === selectedId); if (!e) return;
+  closeSheet();
+  // 탭 전환 (switchTab 대신 직접 처리해서 editingId가 중간에 리셋되는 것 방지)
+  ['today','dashboard','data','settings'].forEach(n => {
+    document.getElementById('view-' + n).style.display = n === 'today' ? 'block' : 'none';
+    document.getElementById('btab-' + n).className = 'bottom-tab' + (n === 'today' ? ' active' : '');
+  });
+  // editingId는 탭 전환 후 설정
+  editingId = selectedId;
   document.getElementById('input-amount').value = e.amount.toLocaleString('ko-KR');
   document.getElementById('input-category').value = e.category;
   document.getElementById('input-memo').value = e.memo || '';
@@ -1365,7 +1396,7 @@ function startEdit() {
   document.getElementById('input-date-row').style.display = 'block';
   document.getElementById('form-title').textContent = '지출 수정';
   document.getElementById('btn-save').textContent = '수정 완료';
-  switchTab('today'); window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 function confirmDelete() {
   if (confirm('이 내역을 삭제할까요?')) {
