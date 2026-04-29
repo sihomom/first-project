@@ -45,6 +45,9 @@ html {
     --sheet-bg: #1e1e1e;
   }
 }
+@media (prefers-color-scheme: dark) {
+  .balance-card.over-budget { background: #4a1010; border-color: #8a2020; }
+}
 body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text-primary); }
 .app { max-width: 390px; margin: 0 auto; padding: 1rem; padding-bottom: 5rem; }
 .header { text-align: center; padding: 1rem 0 0.5rem; }
@@ -61,15 +64,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 /* 숫자 카운트업 애니메이션 */
 .balance-amount { font-size: 36px; font-weight: 500; color: var(--text-primary); transition: color 0.3s; }
 .balance-card.over-budget { background: #3d1a1a; border-color: #7a3030; }
+.balance-card.over-budget .balance-label { color: #f5c0c0; }
+.balance-card.over-budget .balance-sub { color: #f5c0c0; }
 .balance-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
 .balance-amount { font-size: 36px; font-weight: 500; color: #1a1a1a; }
 .balance-amount.negative { color: #d84040; }
 .balance-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 .balance-cycle-total { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); }
 .balance-cycle-label { font-size: 12px; color: var(--text-secondary); }
-.balance-cycle-amount { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.balance-cycle-amount { font-size: 14px; font-weight: 600; color: var(--text-primary); transition: color 0.3s; }
 .balance-cycle-amount.positive { color: var(--accent); }
 .balance-cycle-amount.negative { color: #d84040; }
+.balance-card.over-budget .balance-cycle-amount.positive { color: #ffb3b3; }
+.balance-card.over-budget .balance-cycle-amount.negative { color: #ff8080; }
+.balance-card.over-budget .balance-cycle-label { color: #f5c0c0; }
+.balance-card.over-budget .balance-cycle-total { border-top-color: #f5c0c0; }
 .stats { margin-bottom: 1rem; }
 .stat { background: var(--bg-card); border-radius: 10px; padding: 0.75rem 1rem; border: 0.5px solid var(--border); }
 .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
