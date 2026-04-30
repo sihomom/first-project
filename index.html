@@ -45,8 +45,6 @@ html {
     --border-strong: #555;
     --sheet-bg: #1e1e1e;
   }
-}
-@media (prefers-color-scheme: dark) {
   .balance-card.over-budget { background: #4a1010; border-color: #8a2020; }
 }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text-primary); }
@@ -54,7 +52,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .header { text-align: center; padding: 1rem 0 0.5rem; }
 .header h1 { font-size: 18px; font-weight: 500; color: var(--text-primary); }
 .header .date { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-.balance-card { background: var(--bg-card); border-radius: 16px; padding: 1.5rem 1.5rem 1.2rem; text-align: center; margin: 1rem 0; border: 0.5px solid #e0e0e0; transition: background 0.3s, border-color 0.3s; }
+.balance-card { background: var(--bg-card); border-radius: 16px; padding: 1.5rem 1.5rem 1.2rem; text-align: center; margin: 1rem 0; border: 0.5px solid var(--border); transition: background 0.3s, border-color 0.3s; }
 /* 프로그레스 바 */
 .progress-wrap { margin-top: 1rem; background: var(--bg-toggle); border-radius: 99px; height: 5px; overflow: hidden; }
 .progress-bar { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.6s cubic-bezier(.4,0,.2,1); }
@@ -68,7 +66,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .balance-card.over-budget .balance-label { color: #f5c0c0; }
 .balance-card.over-budget .balance-sub { color: #f5c0c0; }
 .balance-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-.balance-amount { font-size: 36px; font-weight: 500; color: #1a1a1a; }
 .balance-amount.negative { color: #d84040; }
 .balance-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 .balance-cycle-total { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); }
@@ -98,7 +95,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sa
 .form-btns { display: flex; gap: 8px; }
 .form-btns button { flex: 1; padding: 10px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; }
 .btn-cancel { background: var(--bg-toggle); border: 0.5px solid var(--border-mid); color: var(--text-secondary); }
-.btn-save { background: #fff; border: 0.5px solid var(--accent-border); color: #1a1a1a; }
+.btn-save { background: var(--bg-card); border: 0.5px solid var(--accent-border); color: var(--text-primary); }
 .section-title { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin: 1rem 0 0.5rem; }
 .tx-list { display: flex; flex-direction: column; gap: 6px; }
 .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; cursor: pointer; }
@@ -144,17 +141,13 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .cat-dash-bar { height: 100%; border-radius: 4px; }
 .cat-dash-amount { font-size: 14px; font-weight: 500; color: var(--text-primary); white-space: nowrap; }
 
-/* 수정 2: 임시 주기 설정 UI */
-
-/* 위시리스트 */
 /* 결산 리포트 */
 .report-card { background: var(–bg-card); border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid var(–border); }
 .report-card-title { font-size: 13px; font-weight: 500; color: var(–text-secondary); margin-bottom: 10px; }
 .report-sentence { font-size: 14px; color: var(–text-primary); line-height: 1.8; }
 .report-sentence span.highlight { font-weight: 600; color: var(–text-primary); }
-.report-sentence span.good { color: var(–savings-text); font-weight: 600; }
+.report-sentence span.good { color: var(–accent); font-weight: 600; }
 .report-sentence span.warn { color: #d84040; font-weight: 600; }
-/* 즐겨찾기 칩 */
 /* 데이터 탭 */
 .data-card { background: var(–bg-card); border-radius: 16px; padding: 1.2rem; border: 0.5px solid var(–border); margin-bottom: 1rem; }
 .data-card-title { font-size: 15px; font-weight: 500; color: var(–text-primary); margin-bottom: 6px; }
@@ -162,7 +155,6 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid var(–border-strong); background: var(–bg-card); color: var(–text-primary); }
 .data-btn.danger { color: #d84040; border-color: #f0c0c0; margin-top: 8px; }
 .data-btn:active { background: var(–bg-input); }
-/* 위시리스트 이미지뷰 */
 /* 설정 탭 */
 .settings-group { margin-bottom:1.4rem; }
 .settings-group-label { font-size:11px; font-weight:600; color:var(–text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; padding:0 4px; }
@@ -809,7 +801,6 @@ function getDailyWithIncome(d, periodIncome) {
   return Math.floor(Math.max(0, available) / remainDays);
 }
 
-
 function formatIncomeInput(el) {
   const raw = el.value.replace(/[^0-9]/g, '');
   el.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
@@ -981,7 +972,9 @@ function getDashPeriod() {
   const cd2 = (loadSettings().cycleDay) || 25;
   const nm2 = dashMonth === 12 ? 1 : dashMonth + 1;
   const ny2 = dashMonth === 12 ? dashYear + 1 : dashYear;
-  const endDay2 = cd2 === 1 ? new Date(ny2, nm2 - 1, 0).getDate() : cd2 - 1;
+  let endDay2 = cd2 === 1 ? new Date(ny2, nm2 - 1, 0).getDate() : cd2 - 1;
+  const maxDay2 = new Date(ny2, nm2, 0).getDate();
+  if (endDay2 > maxDay2) endDay2 = maxDay2;
   return {
     start: dashYear + '-' + String(dashMonth).padStart(2,'0') + '-' + String(cd2).padStart(2,'0'),
     end: ny2 + '-' + String(nm2).padStart(2,'0') + '-' + String(endDay2).padStart(2,'0'),
