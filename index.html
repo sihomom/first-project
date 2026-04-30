@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -147,69 +148,70 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 
 /* 위시리스트 */
 /* 결산 리포트 */
-.report-card { background: var(--bg-card); border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid var(--border); }
-.report-card-title { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 10px; }
-.report-sentence { font-size: 14px; color: var(--text-primary); line-height: 1.8; }
-.report-sentence span.highlight { font-weight: 600; color: var(--text-primary); }
-.report-sentence span.good { color: var(--savings-text); font-weight: 600; }
+.report-card { background: var(–bg-card); border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; border: 0.5px solid var(–border); }
+.report-card-title { font-size: 13px; font-weight: 500; color: var(–text-secondary); margin-bottom: 10px; }
+.report-sentence { font-size: 14px; color: var(–text-primary); line-height: 1.8; }
+.report-sentence span.highlight { font-weight: 600; color: var(–text-primary); }
+.report-sentence span.good { color: var(–savings-text); font-weight: 600; }
 .report-sentence span.warn { color: #d84040; font-weight: 600; }
 /* 즐겨찾기 칩 */
 /* 데이터 탭 */
-.data-card { background: var(--bg-card); border-radius: 16px; padding: 1.2rem; border: 0.5px solid var(--border); margin-bottom: 1rem; }
-.data-card-title { font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
-.data-card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6; }
-.data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid var(--border-strong); background: var(--bg-card); color: var(--text-primary); }
+.data-card { background: var(–bg-card); border-radius: 16px; padding: 1.2rem; border: 0.5px solid var(–border); margin-bottom: 1rem; }
+.data-card-title { font-size: 15px; font-weight: 500; color: var(–text-primary); margin-bottom: 6px; }
+.data-card-desc { font-size: 13px; color: var(–text-secondary); margin-bottom: 1rem; line-height: 1.6; }
+.data-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid var(–border-strong); background: var(–bg-card); color: var(–text-primary); }
 .data-btn.danger { color: #d84040; border-color: #f0c0c0; margin-top: 8px; }
-.data-btn:active { background: var(--bg-input); }
+.data-btn:active { background: var(–bg-input); }
 /* 위시리스트 이미지뷰 */
 /* 설정 탭 */
 .settings-group { margin-bottom:1.4rem; }
-.settings-group-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; padding:0 4px; }
-.settings-card2 { background:var(--bg-card); border-radius:16px; border:0.5px solid var(--border); overflow:hidden; }
-.settings-item { display:flex; align-items:center; padding:14px 16px; border-bottom:0.5px solid var(--border); gap:12px; }
+.settings-group-label { font-size:11px; font-weight:600; color:var(–text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; padding:0 4px; }
+.settings-card2 { background:var(–bg-card); border-radius:16px; border:0.5px solid var(–border); overflow:hidden; }
+.settings-item { display:flex; align-items:center; padding:14px 16px; border-bottom:0.5px solid var(–border); gap:12px; }
 .settings-item:last-child { border-bottom:none; }
 .settings-item-left { display:flex; align-items:center; gap:12px; flex:1; }
 .settings-item-icon { font-size:20px; width:28px; text-align:center; flex-shrink:0; }
-.settings-item-title { font-size:14px; font-weight:500; color:var(--text-primary); }
-.settings-item-sub { font-size:12px; color:var(--text-muted); margin-top:2px; }
-.settings-input { flex:1; font-size:15px; padding:9px 12px; border:0.5px solid var(--border-mid); border-radius:10px; background:var(--bg-input); color:var(--text-primary); font-family:inherit; }
-.settings-action-btn { padding:9px 18px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; border:none; background:var(--accent); color:#fff; white-space:nowrap; }
+.settings-item-title { font-size:14px; font-weight:500; color:var(–text-primary); }
+.settings-item-sub { font-size:12px; color:var(–text-muted); margin-top:2px; }
+.settings-input { flex:1; font-size:15px; padding:9px 12px; border:0.5px solid var(–border-mid); border-radius:10px; background:var(–bg-input); color:var(–text-primary); font-family:inherit; }
+.settings-action-btn { padding:9px 18px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; border:none; background:var(–accent); color:#fff; white-space:nowrap; }
 .settings-action-btn:active { opacity:0.85; }
 .theme-picker { display:flex; gap:10px; flex-wrap:wrap; }
 .theme-dot { width:28px; height:28px; border-radius:50%; cursor:pointer; border:2.5px solid transparent; transition:border-color 0.15s, transform 0.15s; }
 .theme-dot:active { transform:scale(0.9); }
-.theme-dot.active { border-color:var(--text-primary); box-shadow:0 0 0 1px var(--bg-card); }
+.theme-dot.active { border-color:var(–text-primary); box-shadow:0 0 0 1px var(–bg-card); }
 .cat-editor { display:flex; flex-direction:column; gap:8px; }
 .cat-row { display:flex; align-items:center; gap:10px; }
-.cat-row input { flex:1; font-size:14px; padding:8px 12px; border:0.5px solid var(--border-mid); border-radius:10px; background:var(--bg-input); color:var(--text-primary); font-family:inherit; }
+.cat-row input { flex:1; font-size:14px; padding:8px 12px; border:0.5px solid var(–border-mid); border-radius:10px; background:var(–bg-input); color:var(–text-primary); font-family:inherit; }
 .cat-color-dot { width:22px; height:22px; border-radius:50%; flex-shrink:0; border:1.5px solid rgba(128,128,128,0.2); }
 /* 수입 */
-.income-today-btn { width:100%; padding:10px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; border:1px solid var(--accent); background:transparent; color:var(--accent); margin-bottom:1rem; }
+.income-today-btn { width:100%; padding:10px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; border:1px solid var(–accent); background:transparent; color:var(–accent); margin-bottom:1rem; }
 .income-today-btn:active { opacity:0.75; }
-.income-today-form { background:var(--bg-card); border:0.5px solid var(--accent); border-radius:16px; padding:1rem; margin-bottom:1rem; }
-.income-today-title { font-size:14px; font-weight:500; color:var(--accent); margin-bottom:12px; }
+.income-today-form { background:var(–bg-card); border:0.5px solid var(–accent); border-radius:16px; padding:1rem; margin-bottom:1rem; }
+.income-today-title { font-size:14px; font-weight:500; color:var(–accent); margin-bottom:12px; }
 .income-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
-.income-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-card); border: 0.5px solid var(--accent); border-radius: 10px; }
+.income-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(–bg-card); border: 0.5px solid var(–accent); border-radius: 10px; }
 .income-item-left { display: flex; flex-direction: column; gap: 2px; }
-.income-item-label { font-size: 12px; color: var(--accent); }
-.income-item-memo { font-size: 14px; color: var(--text-primary); }
-.income-item-amount { font-size: 15px; font-weight: 500; color: var(--accent); }
-.income-item-del { font-size: 18px; color: var(--text-faint); cursor: pointer; }
+.income-item-label { font-size: 12px; color: var(–accent); }
+.income-item-memo { font-size: 14px; color: var(–text-primary); }
+.income-item-amount { font-size: 15px; font-weight: 500; color: var(–accent); }
+.income-item-del { font-size: 18px; color: var(–text-faint); cursor: pointer; }
 .income-item-del:active { color: #d84040; }
 /* 바텀시트 */
 .sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 100; }
 .sheet-overlay.show { display: block; }
-.sheet { position: fixed; bottom: -100%; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: var(--sheet-bg); border-radius: 20px 20px 0 0; padding: 1.5rem 1rem 2.5rem; z-index: 101; transition: bottom 0.3s ease; }
+.sheet { position: fixed; bottom: -100%; left: 0; right: 0; max-width: 390px; margin: 0 auto; background: var(–sheet-bg); border-radius: 20px 20px 0 0; padding: 1.5rem 1rem 2.5rem; z-index: 101; transition: bottom 0.3s ease; }
 .sheet.show { bottom: 0; }
-.sheet-handle { width: 36px; height: 4px; background: var(--border-mid); border-radius: 2px; margin: 0 auto 1.2rem; }
-.sheet-title { font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 1rem; }
-.sheet-info { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
-.sheet-value { font-size: 16px; color: var(--text-primary); margin-bottom: 12px; }
+.sheet-handle { width: 36px; height: 4px; background: var(–border-mid); border-radius: 2px; margin: 0 auto 1.2rem; }
+.sheet-title { font-size: 15px; font-weight: 500; color: var(–text-primary); margin-bottom: 1rem; }
+.sheet-info { font-size: 13px; color: var(–text-secondary); margin-bottom: 4px; }
+.sheet-value { font-size: 16px; color: var(–text-primary); margin-bottom: 12px; }
 .sheet-btns { display: flex; gap: 8px; margin-top: 1rem; }
-.sheet-btns button { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid var(--border); background: var(--bg-card); }
-.btn-edit { color: var(--text-primary); }
+.sheet-btns button { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid var(–border); background: var(–bg-card); }
+.btn-edit { color: var(–text-primary); }
 .btn-delete { background: #fff; color: #d84040; border-color: #f0c0c0; }
 </style>
+
 </head>
 <body>
 <div class="app">
@@ -219,6 +221,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
   </div>
 
   <!-- 오늘 탭 -->
+
   <div id="view-today">
     <div class="balance-card">
       <div class="balance-label">오늘의 예산</div>
@@ -300,6 +303,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
   </div>
 
   <!-- 차트 탭 -->
+
   <div id="view-dashboard" style="display:none;">
     <div class="month-nav">
       <button onclick="changeMonth(-1)">◀</button>
@@ -307,53 +311,57 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       <button onclick="changeMonth(1)">▶</button>
     </div>
 
-    <!-- 결산 리포트 카드 -->
-    <div class="report-card" id="report-card" style="display:none;">
-      <div class="report-card-title">📋 이번 주기 결산</div>
-      <div class="report-sentence" id="report-sentences"></div>
-    </div>
+```
+<!-- 결산 리포트 카드 -->
+<div class="report-card" id="report-card" style="display:none;">
+  <div class="report-card-title">📋 이번 주기 결산</div>
+  <div class="report-sentence" id="report-sentences"></div>
+</div>
 
-    <!-- 주기 정보 요약 (읽기 전용) -->
-    <div class="dash-card">
-      <div class="dash-card-label" id="dash-budget-label">이번 주기 예산</div>
-      <div class="dash-card-value" id="dash-total">0원</div>
-      <div class="dash-card-sub" id="dash-sub"></div>
-    </div>
+<!-- 주기 정보 요약 (읽기 전용) -->
+<div class="dash-card">
+  <div class="dash-card-label" id="dash-budget-label">이번 주기 예산</div>
+  <div class="dash-card-value" id="dash-total">0원</div>
+  <div class="dash-card-sub" id="dash-sub"></div>
+</div>
 
-    <div class="dash-grid">
-      <div class="dash-small">
-        <div class="dash-small-label">지출 일수</div>
-        <div class="dash-small-value" id="dash-days">0일</div>
-      </div>
-      <div class="dash-small">
-        <div class="dash-small-label">일평균 지출</div>
-        <div class="dash-small-value" id="dash-avg">0원</div>
-      </div>
-      <div class="dash-small" style="grid-column:1/-1;">
-        <div class="dash-small-label">💰 이번 주기 절약한 금액</div>
-        <div class="dash-small-value" id="dash-savings" style="color:var(--accent);font-size:18px;">0원</div>
-      </div>
-    </div>
-    <!-- 카테고리 필터 -->
-    <div class="cat-filter-wrap" id="cat-filter-wrap"></div>
+<div class="dash-grid">
+  <div class="dash-small">
+    <div class="dash-small-label">지출 일수</div>
+    <div class="dash-small-value" id="dash-days">0일</div>
+  </div>
+  <div class="dash-small">
+    <div class="dash-small-label">일평균 지출</div>
+    <div class="dash-small-value" id="dash-avg">0원</div>
+  </div>
+  <div class="dash-small" style="grid-column:1/-1;">
+    <div class="dash-small-label">💰 이번 주기 절약한 금액</div>
+    <div class="dash-small-value" id="dash-savings" style="color:var(--accent);font-size:18px;">0원</div>
+  </div>
+</div>
+<!-- 카테고리 필터 -->
+<div class="cat-filter-wrap" id="cat-filter-wrap"></div>
 
-    <div class="view-toggle" style="margin-top:0;">
-      <!-- 수정 1: 이모티콘과 텍스트 분리해서 정렬 -->
-      <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')">pie chart</button>
-      <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')">bar graph</button>
-    </div>
-    <div id="dash-chart-view">
-      <div class="pie-wrap">
-        <div class="pie-canvas-wrap"><canvas id="pie-chart" width="200" height="200"></canvas><div id="pie-center-label" class="pie-center-label"></div></div>
-        <div class="pie-legend" id="pie-legend"></div>
-      </div>
-    </div>
-    <div id="dash-bar-view" style="display:none;">
-      <div id="dash-cat-list"></div>
-    </div>
+<div class="view-toggle" style="margin-top:0;">
+  <!-- 수정 1: 이모티콘과 텍스트 분리해서 정렬 -->
+  <button class="view-toggle-btn active" id="toggle-chart" onclick="switchDashView('chart')">pie chart</button>
+  <button class="view-toggle-btn" id="toggle-bar" onclick="switchDashView('bar')">bar graph</button>
+</div>
+<div id="dash-chart-view">
+  <div class="pie-wrap">
+    <div class="pie-canvas-wrap"><canvas id="pie-chart" width="200" height="200"></canvas><div id="pie-center-label" class="pie-center-label"></div></div>
+    <div class="pie-legend" id="pie-legend"></div>
+  </div>
+</div>
+<div id="dash-bar-view" style="display:none;">
+  <div id="dash-cat-list"></div>
+</div>
+```
+
   </div>
 
   <!-- 데이터 관리 탭 -->
+
   <div id="view-data" style="display:none;">
     <div class="data-card">
       <div class="data-card-title">📤 데이터 내보내기</div>
@@ -374,98 +382,101 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
   </div>
 
   <!-- 설정 탭 -->
+
   <div id="view-settings" style="display:none;">
 
-    <div class="settings-group">
-      <div class="settings-group-label">화면</div>
-      <div class="settings-card2">
-        <div class="settings-item">
-          <div class="settings-item-left">
-            <div class="settings-item-icon">🎨</div>
-            <div>
-              <div class="settings-item-title">앱 컬러</div>
-              <div class="settings-item-sub">테마 색상을 선택해요</div>
-            </div>
-          </div>
-          <div class="theme-picker" id="theme-picker"></div>
+```
+<div class="settings-group">
+  <div class="settings-group-label">화면</div>
+  <div class="settings-card2">
+    <div class="settings-item">
+      <div class="settings-item-left">
+        <div class="settings-item-icon">🎨</div>
+        <div>
+          <div class="settings-item-title">앱 컬러</div>
+          <div class="settings-item-sub">테마 색상을 선택해요</div>
         </div>
       </div>
+      <div class="theme-picker" id="theme-picker"></div>
     </div>
+  </div>
+</div>
 
-    <div class="settings-group">
-      <div class="settings-group-label">예산 · 주기</div>
-      <div class="settings-card2">
-        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
-          <div class="settings-item-left">
-            <div class="settings-item-icon">📅</div>
-            <div>
-              <div class="settings-item-title">이번 주기 시작일</div>
-              <div class="settings-item-sub" id="period-start-sub">기본: 매달 25일 시작</div>
-            </div>
-          </div>
-          <div style="display:flex; gap:8px; width:100%;">
-            <input type="date" id="period-start-input" class="settings-input" />
-            <button class="settings-action-btn" onclick="savePeriodStart()">저장</button>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); width:100%;">
-            날짜를 바꾸면 그날부터 새 주기로 계산돼요. 매달 자동 갱신을 원하면 비워두세요.
-          </div>
-          <button style="width:100%; padding:8px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit; border:0.5px solid var(--border-mid); background:var(--bg-input); color:var(--text-secondary);" onclick="resetPeriodStart()">기본값으로 초기화 (매달 25일)</button>
-        </div>
-        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
-          <div class="settings-item-left">
-            <div class="settings-item-icon">💰</div>
-            <div>
-              <div class="settings-item-title">월 예산</div>
-              <div class="settings-item-sub">이번 주기에 사용할 예산 금액이에요</div>
-            </div>
-          </div>
-          <div style="display:flex; gap:8px; width:100%;">
-            <input type="text" inputmode="numeric" id="settings-budget-input" class="settings-input" placeholder="350,000" oninput="formatSettingsBudget(this)" />
-            <button class="settings-action-btn" onclick="saveSettingsBudget()">저장</button>
-          </div>
+<div class="settings-group">
+  <div class="settings-group-label">예산 · 주기</div>
+  <div class="settings-card2">
+    <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
+      <div class="settings-item-left">
+        <div class="settings-item-icon">📅</div>
+        <div>
+          <div class="settings-item-title">이번 주기 시작일</div>
+          <div class="settings-item-sub" id="period-start-sub">기본: 매달 25일 시작</div>
         </div>
       </div>
+      <div style="display:flex; gap:8px; width:100%;">
+        <input type="date" id="period-start-input" class="settings-input" />
+        <button class="settings-action-btn" onclick="savePeriodStart()">저장</button>
+      </div>
+      <div style="font-size:11px; color:var(--text-muted); width:100%;">
+        날짜를 바꾸면 그날부터 새 주기로 계산돼요. 매달 자동 갱신을 원하면 비워두세요.
+      </div>
+      <button style="width:100%; padding:8px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit; border:0.5px solid var(--border-mid); background:var(--bg-input); color:var(--text-secondary);" onclick="resetPeriodStart()">기본값으로 초기화 (매달 25일)</button>
     </div>
+    <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
+      <div class="settings-item-left">
+        <div class="settings-item-icon">💰</div>
+        <div>
+          <div class="settings-item-title">월 예산</div>
+          <div class="settings-item-sub">이번 주기에 사용할 예산 금액이에요</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; width:100%;">
+        <input type="text" inputmode="numeric" id="settings-budget-input" class="settings-input" placeholder="350,000" oninput="formatSettingsBudget(this)" />
+        <button class="settings-action-btn" onclick="saveSettingsBudget()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <div class="settings-group">
-      <div class="settings-group-label">수입</div>
-      <div class="settings-card2">
-        <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
-          <div class="settings-item-left">
-            <div class="settings-item-icon">💵</div>
-            <div>
-              <div class="settings-item-title">수입 추가</div>
-            </div>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
-            <input type="text" inputmode="numeric" id="income-amount" class="settings-input" placeholder="금액 (원)" oninput="formatIncomeInput(this)" />
-            <input type="text" id="income-memo" class="settings-input" placeholder="메모 (선택)" />
-            <button class="settings-action-btn" style="width:100%;" onclick="saveIncome()">추가</button>
-          </div>
-        </div>
-        <div class="settings-item" style="flex-direction:column; align-items:stretch; gap:8px;" id="income-settings-list-wrap" style="display:none;">
-          <div id="income-settings-list"></div>
+<div class="settings-group">
+  <div class="settings-group-label">수입</div>
+  <div class="settings-card2">
+    <div class="settings-item" style="align-items:flex-start; flex-direction:column; gap:10px;">
+      <div class="settings-item-left">
+        <div class="settings-item-icon">💵</div>
+        <div>
+          <div class="settings-item-title">수입 추가</div>
         </div>
       </div>
+      <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+        <input type="text" inputmode="numeric" id="income-amount" class="settings-input" placeholder="금액 (원)" oninput="formatIncomeInput(this)" />
+        <input type="text" id="income-memo" class="settings-input" placeholder="메모 (선택)" />
+        <button class="settings-action-btn" style="width:100%;" onclick="saveIncome()">추가</button>
+      </div>
     </div>
+    <div class="settings-item" style="flex-direction:column; align-items:stretch; gap:8px;" id="income-settings-list-wrap" style="display:none;">
+      <div id="income-settings-list"></div>
+    </div>
+  </div>
+</div>
 
-    <div class="settings-group">
-      <div class="settings-group-label">카테고리</div>
-      <div class="settings-card2">
-        <div class="settings-item" style="flex-direction:column; align-items:stretch; gap:12px;">
-          <div class="settings-item-left">
-            <div class="settings-item-icon">🏷️</div>
-            <div>
-              <div class="settings-item-title">카테고리 편집</div>
-              <div class="settings-item-sub">이름을 직접 수정할 수 있어요</div>
-            </div>
-          </div>
-          <div class="cat-editor" id="cat-editor"></div>
-          <button class="settings-action-btn" style="width:100%;" onclick="saveCats()">카테고리 저장</button>
+<div class="settings-group">
+  <div class="settings-group-label">카테고리</div>
+  <div class="settings-card2">
+    <div class="settings-item" style="flex-direction:column; align-items:stretch; gap:12px;">
+      <div class="settings-item-left">
+        <div class="settings-item-icon">🏷️</div>
+        <div>
+          <div class="settings-item-title">카테고리 편집</div>
+          <div class="settings-item-sub">이름을 직접 수정할 수 있어요</div>
         </div>
       </div>
+      <div class="cat-editor" id="cat-editor"></div>
+      <button class="settings-action-btn" style="width:100%;" onclick="saveCats()">카테고리 저장</button>
     </div>
+  </div>
+</div>
+```
 
   </div>
 </div>
@@ -1301,12 +1312,22 @@ function exportData() {
   const settings = loadSettings();
   const incomes = loadIncomes();
   const monthlyBudget = getMonthly(); // BUDGET_KEY 별도 저장 값
-  const json = JSON.stringify({...d, settings, incomes, monthlyBudget}, null, 2);
+  // settings 안에 periodStart, cycleDay, cats, theme 모두 포함되므로
+  // 별도로 periodStart와 monthlyBudget만 최상위에도 저장해 복원 시 안전하게
+  const snapshot = {
+    ...d,
+    settings,
+    incomes,
+    monthlyBudget,
+    periodStart: settings.periodStart || null,
+    cycleDay: settings.cycleDay || 25,
+    exportedAt: getToday(),
+  };
+  const json = JSON.stringify(snapshot, null, 2);
   const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const date = getToday();
-  a.href = url; a.download = 'daily-wallet-' + date + '.json';
+  a.href = url; a.download = 'daily-wallet-' + getToday() + '.json';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   showToast('내보내기 완료! 파일 앱에서 확인하세요');
@@ -1320,54 +1341,45 @@ function importData(event) {
       const imported = JSON.parse(e.target.result);
       if (!imported.expenses) throw new Error('올바른 파일이 아니에요.');
 
-      // ── 완전 덮어쓰기 방식 ──
-      // lastDate를 오늘로 강제 설정 → checkRollover가 과거를 재계산하지 않도록
-      // carry는 백업 값 그대로 복원 (불러오기 시점의 정확한 값)
-      // 단, 백업 날짜와 오늘이 다르면 carry를 0으로 리셋해 오늘부터 새로 계산
       const today = getToday();
       const backupDate = imported.lastDate || today;
-      const carryValue = backupDate === today
-        ? (typeof imported.carry === 'number' ? imported.carry : 0)
-        : 0; // 날짜가 다르면 carry 리셋
-      const newData = {
+
+      // ── 1. 지출 내역 · carry · lastDate 완전 덮어쓰기 ──
+      // 백업 날짜와 오늘이 같으면 carry 그대로 복원
+      // 날짜가 다르면 carry 0 리셋 (checkRollover가 잘못 계산하는 것 방지)
+      saveData({
         expenses: imported.expenses || [],
-        carry: carryValue,
+        carry: backupDate === today ? (typeof imported.carry === 'number' ? imported.carry : 0) : 0,
         lastDate: today,
-      };
-      saveData(newData);
+      });
 
-      // 수입 내역 전체 교체
-      if (imported.incomes && Array.isArray(imported.incomes)) {
-        saveIncomes(imported.incomes);
-      } else {
-        saveIncomes([]);
-      }
+      // ── 2. 수입 내역 완전 덮어쓰기 ──
+      saveIncomes(Array.isArray(imported.incomes) ? imported.incomes : []);
 
-      // 설정 복원 (테마만 현재 기기 값 유지, 나머지는 백업 값으로)
+      // ── 3. 설정 완전 복원 (periodStart, cycleDay, cats 포함) ──
+      // 테마만 현재 기기 값 유지 (다크/라이트 환경 차이 고려)
+      const currentTheme = loadSettings().theme;
       if (imported.settings) {
-        const currentTheme = loadSettings().theme;
-        const restoredSettings = Object.assign({}, imported.settings, { theme: currentTheme });
-        // periodStart가 과거 날짜면 null로 리셋 (주기 계산 오류 방지)
-        if (restoredSettings.periodStart) {
-          const ps = new Date(restoredSettings.periodStart + 'T00:00:00');
-          const todayD = new Date(today + 'T00:00:00');
-          if (ps < todayD) restoredSettings.periodStart = null;
-        }
-        saveSettings(restoredSettings);
+        // periodStart는 과거여도 그대로 복원 (사용자가 설정한 값 존중)
+        // 단, 이미 종료된 주기라면 getCurrentPeriod가 기본 주기로 자동 처리함
+        saveSettings(Object.assign({}, imported.settings, { theme: currentTheme }));
       }
 
-      // 예산 복원 (BUDGET_KEY 별도 저장)
-      // monthlyBudget 키 우선, 구버전 호환으로 budget 키도 확인
-      const budgetToRestore = imported.monthlyBudget || imported.budget;
+      // ── 4. 예산 완전 복원 (BUDGET_KEY 별도 저장) ──
+      // 최상위 monthlyBudget > settings 내 값 > 기본값 순서로 복원
+      const budgetToRestore = imported.monthlyBudget || imported.budget
+        || (imported.settings && imported.settings.monthlyBudget);
       if (budgetToRestore && budgetToRestore > 0) {
         localStorage.setItem(BUDGET_KEY, String(budgetToRestore));
       }
 
-      displayedVal = null; // 애니메이션 리셋
+      // ── 5. 앱 전체 갱신 ──
+      displayedVal = null;
       applySettings();
       render();
       renderSettings();
-      showToast(imported.expenses.length + '개 항목을 불러왔어요!');
+      if (document.getElementById('view-dashboard').style.display !== 'none') renderDashboard();
+      showToast(imported.expenses.length + '개 항목을 복원했어요!');
     } catch(err) { showToast('파일 읽기 오류: ' + err.message); }
   };
   reader.readAsText(file); event.target.value = '';
@@ -1501,5 +1513,6 @@ function switchTab(t) {
 applySettings();
 render();
 </script>
+
 </body>
 </html>
