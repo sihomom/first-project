@@ -166,8 +166,8 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 /* 설정 탭 */
 .settings-group { margin-bottom:1.4rem; }
 .settings-group-label { font-size:11px; font-weight:600; color:var(–text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; padding:0 4px; }
-.settings-card2 { background:var(–bg-card); border-radius:16px; border:0.5px solid var(–border); overflow:hidden; }
-.settings-item { display:flex; align-items:center; padding:14px 16px; border-bottom:0.5px solid var(–border); gap:12px; }
+.settings-card2 { background:var(–bg-card); border-radius:16px; border:0.5px solid var(–border-mid); overflow:hidden; }
+.settings-item { display:flex; align-items:center; padding:14px 16px; border-bottom:0.5px solid var(–border-mid); gap:12px; }
 .settings-item:last-child { border-bottom:none; }
 .settings-item-left { display:flex; align-items:center; gap:12px; flex:1; }
 .settings-item-icon { font-size:20px; width:28px; text-align:center; flex-shrink:0; }
@@ -1356,29 +1356,27 @@ function importData(event) {
       // ── 2. 수입 내역 완전 덮어쓰기 ──
       saveIncomes(Array.isArray(imported.incomes) ? imported.incomes : []);
 
-      // ── 3. 설정 완전 복원 (periodStart, cycleDay, cats 포함) ──
-      // 테마만 현재 기기 값 유지 (다크/라이트 환경 차이 고려)
-      const currentTheme = loadSettings().theme;
+      // ── 3. 설정 완전 복원 (periodStart, cycleDay, cats, theme 모두 포함) ──
       if (imported.settings) {
-        // periodStart는 과거여도 그대로 복원 (사용자가 설정한 값 존중)
-        // 단, 이미 종료된 주기라면 getCurrentPeriod가 기본 주기로 자동 처리함
-        saveSettings(Object.assign({}, imported.settings, { theme: currentTheme }));
+        saveSettings(imported.settings);
       }
 
       // ── 4. 예산 완전 복원 (BUDGET_KEY 별도 저장) ──
-      // 최상위 monthlyBudget > settings 내 값 > 기본값 순서로 복원
       const budgetToRestore = imported.monthlyBudget || imported.budget
         || (imported.settings && imported.settings.monthlyBudget);
       if (budgetToRestore && budgetToRestore > 0) {
         localStorage.setItem(BUDGET_KEY, String(budgetToRestore));
       }
 
-      // ── 5. 앱 전체 갱신 ──
+      // ── 5. 앱 전체 갱신 (CSS 변수 초기화 → 카테고리 → 렌더 순서 보장) ──
       displayedVal = null;
-      applySettings();
-      render();
-      renderSettings();
-      if (document.getElementById('view-dashboard').style.display !== 'none') renderDashboard();
+      applySettings(); // CATS 갱신 + applyTheme으로 CSS 변수 확실히 적용
+      // 다음 프레임에서 렌더해 CSS 변수 반영 보장
+      requestAnimationFrame(function() {
+        render();
+        renderSettings();
+        if (document.getElementById('view-dashboard').style.display !== 'none') renderDashboard();
+      });
       showToast(imported.expenses.length + '개 항목을 복원했어요!');
     } catch(err) { showToast('파일 읽기 오류: ' + err.message); }
   };
@@ -1511,7 +1509,7 @@ function switchTab(t) {
 }
 
 applySettings();
-render();
+requestAnimationFrame(function() { render(); });
 </script>
 
 </body>
