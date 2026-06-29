@@ -175,6 +175,11 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .cat-row { display:flex; align-items:center; gap:10px; }
 .cat-row input { flex:1; font-size:14px; padding:8px 12px; border:0.5px solid var(--border-mid); border-radius:10px; background:var(--bg-input); color:var(--text-primary); font-family:inherit; }
 .cat-color-dot { width:22px; height:22px; border-radius:50%; flex-shrink:0; border:1.5px solid rgba(128,128,128,0.2); }
+/* 지출 수정 패널 */
+.edit-panel { background: var(--bg-card); border: 1.5px solid var(--accent); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; display: none; }
+.edit-panel.show { display: block; }
+.edit-panel-title { font-size: 14px; font-weight: 500; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.edit-panel-close { font-size: 18px; color: var(--text-muted); cursor: pointer; line-height: 1; }
 /* 수입 */
 .income-today-btn { width:100%; padding:10px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; border:1px solid var(--accent); background:transparent; color:var(--accent); margin-bottom:1rem; }
 .income-today-btn:active { opacity:0.75; }
@@ -287,6 +292,33 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
       </div>
     </div>
     <div class="income-list" id="income-list"></div>
+    <!-- 지출 수정 패널 (지출 내역 탭 시 여기에 표시) -->
+    <div class="edit-panel" id="edit-panel">
+      <div class="edit-panel-title">
+        <span>✏️ 지출 수정</span>
+        <span class="edit-panel-close" onclick="cancelEdit()">✕</span>
+      </div>
+      <div class="form-row">
+        <label>금액 (원)</label>
+        <input type="text" inputmode="numeric" id="edit-amount" placeholder="0" oninput="formatEditAmountInput(this)" />
+      </div>
+      <div class="form-row">
+        <label>카테고리</label>
+        <select id="edit-category"></select>
+      </div>
+      <div class="form-row">
+        <label>메모 (선택)</label>
+        <textarea id="edit-memo" placeholder="내용을 입력하세요" style="height:60px;resize:none;"></textarea>
+      </div>
+      <div class="form-row">
+        <label>날짜</label>
+        <input type="date" id="edit-date" />
+      </div>
+      <div class="form-btns">
+        <button class="btn-cancel" onclick="cancelEdit()">취소</button>
+        <button class="btn-save" onclick="confirmEdit()">수정 완료</button>
+      </div>
+    </div>
     <div class="section-title">오늘의 지출 내역 <span style="font-size:12px;color:var(--text-faint);">탭하면 수정/삭제</span></div>
     <div class="tx-list" id="tx-list"></div>
   </div>
@@ -1402,23 +1434,75 @@ function closeSheet() {
   selectedId = null;
 }
 function startEdit() {
-  const d = loadData(); const e = d.expenses.find(ex => ex.id === selectedId); if (!e) return;
+  const d = loadData();
+  const e = d.expenses.find(ex => ex.id === selectedId);
+  if (!e) return;
   closeSheet();
-  // 탭 전환 (switchTab 대신 직접 처리해서 editingId가 중간에 리셋되는 것 방지)
+
+  // 오늘 탭으로 전환
   ['today','dashboard','data','settings'].forEach(n => {
     document.getElementById('view-' + n).style.display = n === 'today' ? 'block' : 'none';
     document.getElementById('btab-' + n).className = 'bottom-tab' + (n === 'today' ? ' active' : '');
   });
-  // editingId는 탭 전환 후 설정
+
+  // 수정 패널 열기
   editingId = selectedId;
-  document.getElementById('input-amount').value = e.amount.toLocaleString('ko-KR');
-  document.getElementById('input-category').value = e.category;
-  document.getElementById('input-memo').value = e.memo || '';
-  document.getElementById('input-date').value = e.date || getToday();
-  document.getElementById('input-date-row').style.display = 'block';
-  document.getElementById('form-title').textContent = '지출 수정';
-  document.getElementById('btn-save').textContent = '수정 완료';
-  window.scrollTo({top: 0, behavior: 'smooth'});
+
+  // edit-category select 옵션 채우기
+  const sel = document.getElementById('edit-category');
+  sel.innerHTML = CATS.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+
+  document.getElementById('edit-amount').value = e.amount.toLocaleString('ko-KR');
+  sel.value = e.category;
+  document.getElementById('edit-memo').value = e.memo || '';
+  document.getElementById('edit-date').value = e.date || getToday();
+
+  const panel = document.getElementById('edit-panel');
+  panel.classList.add('show');
+
+  // 수정 패널 위치로 스크롤
+  setTimeout(function() {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+}
+
+function cancelEdit() {
+  editingId = null;
+  document.getElementById('edit-panel').classList.remove('show');
+}
+
+function formatEditAmountInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw ? parseInt(raw).toLocaleString('ko-KR') : '';
+}
+
+function confirmEdit() {
+  if (!editingId) return;
+  const raw = document.getElementById('edit-amount').value.replace(/[^0-9]/g, '');
+  const amount = parseInt(raw);
+  if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  const category = document.getElementById('edit-category').value;
+  const memo = document.getElementById('edit-memo').value.trim();
+  const dateVal = document.getElementById('edit-date').value || getToday();
+
+  const d = loadData();
+  const idx = d.expenses.findIndex(ex => ex.id === editingId);
+  if (idx === -1) { showToast('수정할 항목을 찾을 수 없어요'); return; }
+
+  // 기존 항목 덮어쓰기 (id, time 유지)
+  d.expenses[idx] = {
+    ...d.expenses[idx],
+    amount,
+    category,
+    memo,
+    date: dateVal,
+  };
+
+  saveData(d);
+  editingId = null;
+  document.getElementById('edit-panel').classList.remove('show');
+  render();
+  showToast('수정됐어요 ✓');
 }
 function confirmDelete() {
   if (confirm('이 내역을 삭제할까요?')) {
@@ -1435,7 +1519,6 @@ function clearForm() {
   document.getElementById('input-date-row').style.display = 'none';
   document.getElementById('form-title').textContent = '지출 추가';
   document.getElementById('btn-save').textContent = '저장';
-  editingId = null;
 }
 function formatAmountInput(el) {
   const raw = el.value.replace(/[^0-9]/g, '');
@@ -1452,49 +1535,33 @@ function getAmountValue() {
 }
 
 function saveExpense() {
+  // 지출 추가 전용 (수정은 confirmEdit 사용)
   const amount = getAmountValue();
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
   const category = document.getElementById('input-category').value;
   const memo = document.getElementById('input-memo').value.trim();
   const dateVal = document.getElementById('input-date').value || getToday();
 
-  // editingId를 먼저 캡처 (clearForm이 null로 만들기 전에)
-  const currentEditingId = editingId;
-  const isEditing = !!currentEditingId;
-
   const d = loadData();
-
-  if (isEditing) {
-    // 수정: 기존 항목을 id로 찾아서 덮어씀
-    const idx = d.expenses.findIndex(ex => ex.id === currentEditingId);
-    if (idx > -1) {
-      d.expenses[idx].amount = amount;
-      d.expenses[idx].category = category;
-      d.expenses[idx].memo = memo;
-      d.expenses[idx].date = dateVal;
-      // time은 최초 입력 시각 유지
-    } else {
-      showToast('수정할 항목을 찾을 수 없어요'); return;
-    }
-  } else {
-    // 신규 추가
-    const now = new Date();
-    const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    d.expenses.push({id: Date.now().toString(), date: dateVal, time: timeStr, amount, category, memo});
-  }
+  const now = new Date();
+  const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  d.expenses.push({id: Date.now().toString(), date: dateVal, time: timeStr, amount, category, memo});
 
   saveData(d);
-  editingId = null; // clearForm 전에 직접 null 처리
   clearForm();
   render();
-  showToast(isEditing ? '수정됐어요 ✓' : '저장됐어요 ✓');
+  showToast('저장됐어요 ✓');
   setTimeout(function() { document.getElementById('input-amount').focus(); }, 80);
 }
 
 /* ── 탭 전환 ── */
 function switchTab(t) {
-  // 수정 중 탭 이동 시 editingId 초기화
-  if (editingId && t !== 'today') { editingId = null; clearForm(); }
+  // 다른 탭 이동 시 수정 패널 닫기
+  if (t !== 'today') {
+    editingId = null;
+    const ep = document.getElementById('edit-panel');
+    if (ep) ep.classList.remove('show');
+  }
   ['today','dashboard','data','settings'].forEach(n => {
     document.getElementById('view-' + n).style.display = t === n ? 'block' : 'none';
     document.getElementById('btab-' + n).className = 'bottom-tab' + (t === n ? ' active' : '');
