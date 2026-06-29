@@ -16,16 +16,16 @@ html {
   --accent-border: #bbb;
   --filter-active: #1a1a1a;
   /* 라이트 모드 기본값 */
-  --bg: #f5f5f0;
+  --bg: #ededea;
   --bg-card: #fff;
-  --bg-input: #fafafa;
+  --bg-input: #f5f5f2;
   --bg-toggle: #f0f0ec;
   --text-primary: #1a1a1a;
   --text-secondary: #888;
   --text-muted: #aaa;
   --text-faint: #bbb;
-  --border: #e0e0e0;
-  --border-mid: #ddd;
+  --border: #d8d8d8;
+  --border-mid: #d0d0d0;
   --border-strong: #bbb;
   --sheet-bg: #fff;
 }
@@ -1456,22 +1456,38 @@ function saveExpense() {
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
   const category = document.getElementById('input-category').value;
   const memo = document.getElementById('input-memo').value.trim();
-  const d = loadData();
   const dateVal = document.getElementById('input-date').value || getToday();
-  const editingWas = !!editingId;
-  if (editingId) {
-    const idx = d.expenses.findIndex(e => e.id === editingId);
-    if (idx > -1) { d.expenses[idx].amount = amount; d.expenses[idx].category = category; d.expenses[idx].memo = memo; d.expenses[idx].date = dateVal; }
-    editingId = null;
+
+  // editingId를 먼저 캡처 (clearForm이 null로 만들기 전에)
+  const currentEditingId = editingId;
+  const isEditing = !!currentEditingId;
+
+  const d = loadData();
+
+  if (isEditing) {
+    // 수정: 기존 항목을 id로 찾아서 덮어씀
+    const idx = d.expenses.findIndex(ex => ex.id === currentEditingId);
+    if (idx > -1) {
+      d.expenses[idx].amount = amount;
+      d.expenses[idx].category = category;
+      d.expenses[idx].memo = memo;
+      d.expenses[idx].date = dateVal;
+      // time은 최초 입력 시각 유지
+    } else {
+      showToast('수정할 항목을 찾을 수 없어요'); return;
+    }
   } else {
+    // 신규 추가
     const now = new Date();
     const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
     d.expenses.push({id: Date.now().toString(), date: dateVal, time: timeStr, amount, category, memo});
   }
-  saveData(d); clearForm(); render();
-  // 토스트 메시지
-  showToast(editingWas ? '수정됐어요 ✓' : '저장됐어요 ✓');
-  // 저장 후 금액 입력창 자동 포커스
+
+  saveData(d);
+  editingId = null; // clearForm 전에 직접 null 처리
+  clearForm();
+  render();
+  showToast(isEditing ? '수정됐어요 ✓' : '저장됐어요 ✓');
   setTimeout(function() { document.getElementById('input-amount').focus(); }, 80);
 }
 
