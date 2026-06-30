@@ -205,7 +205,7 @@ canvas#pie-chart { width: 200px; height: 200px; display: block; }
 .sheet-btns { display: flex; gap: 8px; margin-top: 1rem; }
 .sheet-btns button { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; border: 0.5px solid var(--border); background: var(--bg-card); }
 .btn-edit { color: var(--text-primary); }
-.btn-delete { background: #fff; color: #d84040; border-color: #f0c0c0; }
+.btn-delete { background: var(--bg-card); color: #d84040; border-color: #f0c0c0; }
 </style>
 </head>
 <body>
@@ -1434,10 +1434,14 @@ function closeSheet() {
   selectedId = null;
 }
 function startEdit() {
+  // selectedId를 closeSheet 전에 먼저 캡처
+  const targetId = selectedId;
+  if (!targetId) return;
   const d = loadData();
-  const e = d.expenses.find(ex => ex.id === selectedId);
+  const e = d.expenses.find(ex => ex.id === targetId);
   if (!e) return;
-  closeSheet();
+
+  closeSheet(); // 여기서 selectedId = null 되지만 targetId는 유지
 
   // 오늘 탭으로 전환
   ['today','dashboard','data','settings'].forEach(n => {
@@ -1445,8 +1449,8 @@ function startEdit() {
     document.getElementById('btab-' + n).className = 'bottom-tab' + (n === 'today' ? ' active' : '');
   });
 
-  // 수정 패널 열기
-  editingId = selectedId;
+  // editingId 설정
+  editingId = targetId;
 
   // edit-category select 옵션 채우기
   const sel = document.getElementById('edit-category');
@@ -1458,9 +1462,9 @@ function startEdit() {
   document.getElementById('edit-date').value = e.date || getToday();
 
   const panel = document.getElementById('edit-panel');
+  panel.dataset.editingId = targetId;
   panel.classList.add('show');
 
-  // 수정 패널 위치로 스크롤
   setTimeout(function() {
     panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, 50);
@@ -1468,7 +1472,8 @@ function startEdit() {
 
 function cancelEdit() {
   editingId = null;
-  document.getElementById('edit-panel').classList.remove('show');
+  const panel = document.getElementById('edit-panel');
+  if (panel) { panel.classList.remove('show'); panel.dataset.editingId = ''; }
 }
 
 function formatEditAmountInput(el) {
@@ -1477,7 +1482,11 @@ function formatEditAmountInput(el) {
 }
 
 function confirmEdit() {
-  if (!editingId) return;
+  // editingId를 전역 변수와 패널 data attribute 둘 다에서 확인
+  const panel = document.getElementById('edit-panel');
+  const targetId = editingId || (panel && panel.dataset.editingId);
+  if (!targetId) { showToast('수정할 항목이 없어요'); return; }
+
   const raw = document.getElementById('edit-amount').value.replace(/[^0-9]/g, '');
   const amount = parseInt(raw);
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
@@ -1486,12 +1495,13 @@ function confirmEdit() {
   const dateVal = document.getElementById('edit-date').value || getToday();
 
   const d = loadData();
-  const idx = d.expenses.findIndex(ex => ex.id === editingId);
+  const idx = d.expenses.findIndex(ex => ex.id === targetId);
   if (idx === -1) { showToast('수정할 항목을 찾을 수 없어요'); return; }
 
   // 기존 항목 덮어쓰기 (id, time 유지)
   d.expenses[idx] = {
-    ...d.expenses[idx],
+    id: d.expenses[idx].id,
+    time: d.expenses[idx].time || '',
     amount,
     category,
     memo,
@@ -1500,14 +1510,20 @@ function confirmEdit() {
 
   saveData(d);
   editingId = null;
-  document.getElementById('edit-panel').classList.remove('show');
+  if (panel) { panel.classList.remove('show'); panel.dataset.editingId = ''; }
   render();
   showToast('수정됐어요 ✓');
 }
 function confirmDelete() {
+  // selectedId를 먼저 캡처 (closeSheet가 null로 만들기 전에)
+  const targetId = selectedId;
+  if (!targetId) return;
   if (confirm('이 내역을 삭제할까요?')) {
-    const d = loadData(); d.expenses = d.expenses.filter(e => e.id !== selectedId);
-    saveData(d); closeSheet(); render();
+    const d = loadData();
+    d.expenses = d.expenses.filter(e => e.id !== targetId);
+    saveData(d);
+    closeSheet();
+    render();
     showToast('삭제됐어요');
   }
 }
